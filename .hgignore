@@ -1,0 +1,9 @@
+syntax: glob
+*.suo
+ConsoleTest/bin/
+ConsoleTest/obj/
+SharedPluginServer/bin/
+SharedPluginServer/cef/
+SharedPluginServer/obj/
+TestClient/bin/
+TestClient/obj/
