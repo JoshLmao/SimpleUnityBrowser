@@ -12,7 +12,8 @@ namespace SharedPluginServer
     public class SharedMemServer:IDisposable
     {
         private SharedMemory.SharedArray<byte> _sharedBuf;
-       
+
+        private bool _isOpen;
 
         private static readonly log4net.ILog log =
    log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -23,8 +24,8 @@ namespace SharedPluginServer
         public void Init(int size)
         {
             _sharedBuf=new SharedArray<byte>("MainSharedMem",size);
-             
-           
+            _isOpen = true;
+
 
         }
 
@@ -41,13 +42,17 @@ namespace SharedPluginServer
 
         public void WriteBytes(byte[] bytes)
         {
-            if(bytes.Length>_sharedBuf.Length)
-                Resize(bytes.Length);
-            _sharedBuf.Write(bytes);
+            if (_isOpen)
+            {
+                if (bytes.Length > _sharedBuf.Length)
+                    Resize(bytes.Length);
+                _sharedBuf.Write(bytes);
+            }
         }
 
         public void Dispose()
         {
+            _isOpen = false;
             _sharedBuf.Close();
         }
 

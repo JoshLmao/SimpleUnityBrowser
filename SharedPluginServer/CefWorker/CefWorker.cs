@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MessageLibrary;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Wrapper;
 
@@ -111,7 +112,8 @@ namespace SharedPluginServer
                 cefBrowserSettings.WebSecurity=CefState.Disabled;
 
                 _client = new DemoCefClient(1280, 720);
-                string url = "http://www.reddit.com/";
+                //string url = "http://www.reddit.com/";
+                string url = "http://www.yandex.ru/";
                 CefBrowserHost.CreateBrowser(cefWindowInfo, _client, cefBrowserSettings, url);
 
                 // MessageBox.Show("INITIALIZED");
@@ -119,6 +121,11 @@ namespace SharedPluginServer
                 _initialized = true;
                 _client.OnLoadFinished += _client_OnLoadFinished;
             }
+        }
+
+        public void SetMemServer(SharedMemServer memServer)
+        {
+            _client.SetMemServer(memServer);
         }
 
         private void RegisterMessageRouter()
@@ -201,5 +208,12 @@ namespace SharedPluginServer
         {
             _client.MouseMoveEvent(x, y);
         }
+
+        public void CharEvent(int character,KeyboardEventType type)
+        {
+            _client.KeyboardCharEvent(character,type);
+        }
+
+        
     }
 }

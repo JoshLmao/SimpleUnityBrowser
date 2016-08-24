@@ -1,14 +1,16 @@
 using System.Drawing;
 using System.Windows.Forms;
+using MessageLibrary;
 using Xilium.CefGlue;
 
 namespace SharedPluginServer
 {
     class DemoCefClient : CefClient
     {
+#if DEBUG
         private static readonly log4net.ILog log =
   log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+#endif
         private readonly DemoCefLoadHandler _loadHandler;
         private readonly DemoCefRenderHandler _renderHandler;
         private readonly DemoLifespanHandler _lifespanHandler;
@@ -35,7 +37,10 @@ namespace SharedPluginServer
             return _requestHandler;
         }
 
-        
+        public void SetMemServer(SharedMemServer memServer)
+        {
+            _renderHandler._memServer = memServer;
+        }
 
       
 
@@ -102,7 +107,7 @@ namespace SharedPluginServer
             CefEventFlags modifiers = new CefEventFlags();
             modifiers |= CefEventFlags.LeftMouseButton;
             mouseEvent.Modifiers = modifiers;
-           log.Info("CLICK:" + x + "," + y);
+          // log.Info("CLICK:" + x + "," + y);
             _lifespanHandler.MainBrowser.GetHost().SendMouseClickEvent(mouseEvent,CefMouseButtonType.Left, updown,1);
             
         }
@@ -115,6 +120,22 @@ namespace SharedPluginServer
                 Y = y,
             };
             _lifespanHandler.MainBrowser.GetHost().SendMouseMoveEvent(mouseEvent,false);
+        }
+
+        public void KeyboardCharEvent(int character,KeyboardEventType type)
+        {
+            CefKeyEvent keyEvent = new CefKeyEvent()
+            {
+                //Character = character,
+                EventType = CefKeyEventType.Char,
+                WindowsKeyCode = character
+            };
+            if(type==KeyboardEventType.Down)
+                keyEvent.EventType=CefKeyEventType.KeyDown;
+            if(type==KeyboardEventType.Up)
+                keyEvent.EventType=CefKeyEventType.KeyUp;
+
+            _lifespanHandler.MainBrowser.GetHost().SendKeyEvent(keyEvent);
         }
     }
 }

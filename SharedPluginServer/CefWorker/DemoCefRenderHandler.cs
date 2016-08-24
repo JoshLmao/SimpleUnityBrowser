@@ -19,6 +19,8 @@ namespace SharedPluginServer
         public int CurrentWidth=0;
         public int CurrentHeight = 0;
 
+        public SharedMemServer _memServer = null;
+
         public DemoCefRenderHandler(int windowWidth, int windowHeight)
         {
             _windowWidth = windowWidth;
@@ -83,7 +85,8 @@ namespace SharedPluginServer
             Marshal.Copy(buffer, MainBitmap, 0, _copysize);
 
 
-
+            if(_memServer!=null)
+                _memServer.WriteBytes(MainBitmap);
 
 
             // Save the provided buffer (a bitmap image) as a PNG.

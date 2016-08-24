@@ -40,7 +40,11 @@ namespace TestClient
 
         private Socket clientSocket;
 
-      //  private Queue<MouseMessage> _sendEvents; 
+        //  private Queue<MouseMessage> _sendEvents; 
+
+        SharedArray<byte> arr = new SharedArray<byte>("MainSharedMem");
+
+        private Bitmap _texture;
 
         public Form1()
         {
@@ -52,16 +56,34 @@ namespace TestClient
             clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             clientSocket.Connect(new IPEndPoint(ip, 8885));
 
+            _texture = new Bitmap(BMWidth, BMHeight);
+           
             /// _sendEvents=new Queue<MouseMessage>();
+            Application.Idle += Application_Idle;
+        }
+
+        private void Application_Idle(object sender, EventArgs e)
+        {
+            //Render bitmap
+           // MessageBox.Show("RENDER");
+            byte[] _read = new byte[arr.Length];
+
+            arr.CopyTo(_read, 0);
+
+            
+            Rectangle rect = new Rectangle(0, 0, BMWidth, BMHeight);
+            BitmapData bmpData = _texture.LockBits(rect, ImageLockMode.WriteOnly, _texture.PixelFormat);
+            IntPtr ptr = bmpData.Scan0;
+            System.Runtime.InteropServices.Marshal.Copy(_read, 0, ptr, _read.Length);
+            _texture.UnlockBits(bmpData);
+            pictureBox1.Image = _texture;
 
         }
 
-        
-
         private void button1_Click(object sender, EventArgs e)
         {
-            SharedArray<byte> arr = new SharedArray<byte>("MainSharedMem");
 
+           
             byte[] _read = new byte[arr.Length];
 
             arr.CopyTo(_read, 0);
@@ -88,7 +110,10 @@ namespace TestClient
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            clientSocket.Close();
+            SendShutdownEvent();
+            Application.Idle -= Application_Idle;
+            // clientSocket.Close();
+            
         }
 
         public void SendMouseEvent(MouseMessage msg)
@@ -96,12 +121,61 @@ namespace TestClient
            // if (_MouseDone)
                 //_controlMem.Write(ref msg,0);
            // _MouseDone = false;
+            EventPacket ep = new EventPacket
+            {
+                Event = msg,
+                Type = EventType.Mouse
+            };
+
            MemoryStream mstr=new MemoryStream();
             BinaryFormatter bf=new BinaryFormatter();
-            bf.Serialize(mstr, msg);
+            bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             clientSocket.Send(b);
             //  MessageBox.Show(_sendEvents.Count.ToString());
+        }
+
+        public void SendShutdownEvent()
+        {
+            GenericEvent ge = new GenericEvent()
+            {
+                Type = GenericEventType.Shutdown,
+                 GenericType = EventType.Generic
+            };
+
+            EventPacket ep = new EventPacket()
+            {
+                Event = ge,
+                Type = EventType.Generic
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+            byte[] b = mstr.GetBuffer();
+            clientSocket.Send(b);
+
+        }
+
+        public void SendCharEvent(int character,KeyboardEventType type)
+        {
+            log.Info("____________CHAR EVENT:"+character);
+            KeyboardEvent keyboardEvent = new KeyboardEvent()
+            {
+                Type = type,
+                Key = character
+            };
+            EventPacket ep = new EventPacket()
+            {
+                Event = keyboardEvent,
+                Type = EventType.Keyboard
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+            byte[] b = mstr.GetBuffer();
+            clientSocket.Send(b);
         }
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
@@ -110,28 +184,31 @@ namespace TestClient
             {
                 Type=MouseEventType.LButtonDown,
                 X=e.X,
-                Y=e.Y
+                Y=e.Y,
+                GenericType = EventType.Mouse
             };
 
             SendMouseEvent(msg);
         }
 
+        //really spammy
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
            // MessageBox.Show("_______MOVE 1");
-            //if (posX != e.X || posY != e.Y)
-           // {
+            if (posX != e.X || posY != e.Y)
+            {
                 MouseMessage msg = new MouseMessage
                 {
                     Type = MouseEventType.Move,
                     X = e.X,
-                    Y = e.Y
+                    Y = e.Y,
+                    GenericType = EventType.Mouse
                 };
                 posX = e.X;
                 posY = e.Y;
 
                 SendMouseEvent(msg);
-            //}
+            }
         }
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
@@ -140,7 +217,8 @@ namespace TestClient
             {
                 Type = MouseEventType.LButtonUp,
                 X = e.X,
-                Y = e.Y
+                Y = e.Y,
+                GenericType = EventType.Mouse
             };
 
             SendMouseEvent(msg);
@@ -155,11 +233,41 @@ namespace TestClient
         {
           
         }
+
+        private void button1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+           
+        }
+
+        private void button1_KeyDown(object sender, KeyEventArgs e)
+        {
+            
+        }
+
+        private void button1_KeyUp(object sender, KeyEventArgs e)
+        {
+            
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            SendCharEvent((int)e.KeyValue, KeyboardEventType.Down);
+        }
+
+        private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            SendCharEvent((int)e.KeyChar, KeyboardEventType.CharKey);
+        }
+
+        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        {
+            SendCharEvent((int)e.KeyValue, KeyboardEventType.Up);
+        }
     }
 
 
 
-    
+
 
 
     #region Utils

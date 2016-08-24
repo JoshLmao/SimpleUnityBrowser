@@ -16,7 +16,7 @@ namespace MessageLibrary
     }
 
     [Serializable]
-    public struct MouseMessage
+    public class MouseMessage:AbstractEvent
     {
         public int X { get; set; }
         public int Y { get; set; }

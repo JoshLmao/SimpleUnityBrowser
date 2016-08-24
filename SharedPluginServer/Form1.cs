@@ -25,7 +25,7 @@ namespace SharedPluginServer
 
 
         Bitmap memoryImage;
-        private static NamedPipeServerStream pipeStream;
+       
 
         private SharedMemServer _memServer;
 
@@ -44,7 +44,7 @@ namespace SharedPluginServer
 
             _controlServer = csrv;
 
-           _controlServer.OnReceivedMessage += _memServer_OnMouseEvent;
+           //_controlServer.OnReceivedMessage += _memServer_OnMouseEvent;
         }
 
         private void _memServer_OnMouseEvent(MouseMessage msg)

@@ -31,7 +31,7 @@ namespace SharedPluginServer.Interprocess
 
        private static volatile bool _shouldStop = false;
 
-        public delegate void ReceivedMessage(MouseMessage msg);
+        public delegate void ReceivedMessage(EventPacket msg);
 
        private Thread _connectThread;
        private Thread _listenThread;
@@ -81,12 +81,12 @@ namespace SharedPluginServer.Interprocess
                     
                     int receiveNumber = _server._clientSocket.Receive(result);
 
-                    log.Info("__RECEIVED___:"+receiveNumber);
+                   // log.Info("__RECEIVED___:"+receiveNumber);
                     try
                     {
                         BinaryFormatter bf = new BinaryFormatter();
                         MemoryStream str = new MemoryStream(result);
-                        MouseMessage msg = (MouseMessage)bf.Deserialize(str);
+                        EventPacket msg = (EventPacket)bf.Deserialize(str);
 
                         _server.OnReceivedMessage?.Invoke(msg);
                     }
@@ -101,10 +101,13 @@ namespace SharedPluginServer.Interprocess
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                   log.Error("_______SOCKET:"+ex.Message);
                     //m_ClientSocketList.Remove(myClientSocket);
-                    _server._clientSocket.Shutdown(SocketShutdown.Both);
-                    _server._clientSocket.Close();
+                    if (_server != null)
+                    {
+                        _server._clientSocket?.Shutdown(SocketShutdown.Both);
+                        _server._clientSocket?.Close();
+                    }
                     break;
                 }
             }
@@ -117,8 +120,8 @@ namespace SharedPluginServer.Interprocess
 
            // MessageBox.Show("_______SHUTDOWN");
            _shouldStop = true;
-            _connectThread?.Abort();
-            _listenThread?.Abort();
+            //_connectThread?.Abort();
+            //_listenThread?.Abort();
        }
 
        ~SocketServer()
