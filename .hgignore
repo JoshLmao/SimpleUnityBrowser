@@ -7,3 +7,5 @@ SharedPluginServer/cef/
 SharedPluginServer/obj/
 TestClient/bin/
 TestClient/obj/
+MessageLibrary/bin/
+MessageLibrary/obj/

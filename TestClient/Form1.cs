@@ -11,46 +11,156 @@ using System.Windows.Forms;
 //using SharedMemory;
 using System.IO.Pipes;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
+using SharedMemory;
+using log4net;
+using MessageLibrary;
 
 namespace TestClient
 {
     public partial class Form1 : Form
     {
-        const int BufferSize = 5242880;
+        private static readonly log4net.ILog log =
+  log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+
+       
 
         const int BMWidth = 1280;
         const int BMHeight = 1024;
 
+        private bool _MouseDone = true;
+
+        private int posX = 0;
+        private int posY = 0;
+
+        private Socket clientSocket;
+
+      //  private Queue<MouseMessage> _sendEvents; 
+
         public Form1()
         {
             InitializeComponent();
-        }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-          /*  SharedArray<byte> arr=new SharedArray<byte>("MainBuffer");
 
-            byte[] _read=new byte[BufferSize];
+            //Connect
+            IPAddress ip = IPAddress.Parse("127.0.0.1");
+            clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            clientSocket.Connect(new IPEndPoint(ip, 8885));
 
-            arr.CopyTo(_read,0);
-
-            Bitmap bmp = new Bitmap(BMWidth, BMHeight);
-            Rectangle rect=new Rectangle(0,0,BMWidth,BMHeight);
-            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.WriteOnly, bmp.PixelFormat);
-            IntPtr ptr = bmpData.Scan0;
-            System.Runtime.InteropServices.Marshal.Copy(_read,0,ptr,BufferSize);
-            bmp.UnlockBits(bmpData);
-
-            pictureBox1.Image = bmp;
-            */
-            
+            /// _sendEvents=new Queue<MouseMessage>();
 
         }
 
         
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            SharedArray<byte> arr = new SharedArray<byte>("MainSharedMem");
+
+            byte[] _read = new byte[arr.Length];
+
+            arr.CopyTo(_read, 0);
+
+            Bitmap bmp = new Bitmap(BMWidth, BMHeight);
+            Rectangle rect = new Rectangle(0, 0, BMWidth, BMHeight);
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.WriteOnly, bmp.PixelFormat);
+            IntPtr ptr = bmpData.Scan0;
+            System.Runtime.InteropServices.Marshal.Copy(_read, 0, ptr, _read.Length);
+            bmp.UnlockBits(bmpData);
+
+            pictureBox1.Image = bmp;
+
+            ////
+
+
+
+
+          //  using (StreamWriter sw = new StreamWriter(pipeClient))
+           // {
+           //     sw.WriteLine("TEST PIPE SEND");
+           // }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            clientSocket.Close();
+        }
+
+        public void SendMouseEvent(MouseMessage msg)
+        {
+           // if (_MouseDone)
+                //_controlMem.Write(ref msg,0);
+           // _MouseDone = false;
+           MemoryStream mstr=new MemoryStream();
+            BinaryFormatter bf=new BinaryFormatter();
+            bf.Serialize(mstr, msg);
+            byte[] b = mstr.GetBuffer();
+            clientSocket.Send(b);
+            //  MessageBox.Show(_sendEvents.Count.ToString());
+        }
+
+        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        {
+            MouseMessage msg = new MouseMessage
+            {
+                Type=MouseEventType.LButtonDown,
+                X=e.X,
+                Y=e.Y
+            };
+
+            SendMouseEvent(msg);
+        }
+
+        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        {
+           // MessageBox.Show("_______MOVE 1");
+            //if (posX != e.X || posY != e.Y)
+           // {
+                MouseMessage msg = new MouseMessage
+                {
+                    Type = MouseEventType.Move,
+                    X = e.X,
+                    Y = e.Y
+                };
+                posX = e.X;
+                posY = e.Y;
+
+                SendMouseEvent(msg);
+            //}
+        }
+
+        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+        {
+            MouseMessage msg = new MouseMessage
+            {
+                Type = MouseEventType.LButtonUp,
+                X = e.X,
+                Y = e.Y
+            };
+
+            SendMouseEvent(msg);
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+          
+        }
     }
+
+
+
+    
+
 
     #region Utils
     public class StreamString

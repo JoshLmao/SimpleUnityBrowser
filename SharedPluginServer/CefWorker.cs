@@ -12,10 +12,10 @@ using Xilium.CefGlue.Wrapper;
 namespace SharedPluginServer
 {
 
-    public class CefWorker
+    public class CefWorker//:IDisposable
     {
         private static readonly log4net.ILog log =
-    log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+    log4net.LogManager.GetLogger(typeof(CefWorker));
 
         [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
         public static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
@@ -30,8 +30,26 @@ namespace SharedPluginServer
 
         public static CefMessageRouterBrowserSide BrowserMessageRouter { get; private set; }
 
+        #region IDisposable
+     /*   ~CefWorker()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }*/
+        #endregion
+
         public void Init()
         {
+            log.Info("___________INIT___________");
             if (!_initialized)
             {
                 // MessageBox.Show("_______INIT");
@@ -97,7 +115,7 @@ namespace SharedPluginServer
                 CefBrowserHost.CreateBrowser(cefWindowInfo, _client, cefBrowserSettings, url);
 
                 // MessageBox.Show("INITIALIZED");
-               // Application.Idle += (s, e) => CefRuntime.DoMessageLoopWork();
+                //Application.Idle += (s, e) => CefRuntime.DoMessageLoopWork();
                 _initialized = true;
                 _client.OnLoadFinished += _client_OnLoadFinished;
             }

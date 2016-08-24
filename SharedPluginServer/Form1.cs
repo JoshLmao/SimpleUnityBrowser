@@ -12,27 +12,58 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MessageLibrary;
 //using NamedPipeWrapper;
+using SharedPluginServer.Interprocess;
 
 namespace SharedPluginServer
 {
     public partial class Form1 : Form
     {
+        private static readonly log4net.ILog log =
+    log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+
         Bitmap memoryImage;
         private static NamedPipeServerStream pipeStream;
 
-       // private SharedMemory.SharedArray<byte> SharedBuf;
-       // private NamedPipeServer<string> MainServer;
+        private SharedMemServer _memServer;
+
+        private SocketServer _controlServer;
 
         private CefWorker _mainWorker;
 
-        public Form1(CefWorker worker)
+        public Form1(CefWorker worker,SharedMemServer sharedMemServer,SocketServer csrv)
         {
             InitializeComponent();
             //_mainWorker = MainWorker;
             //_mainWorker = new CefWorker();
             //_mainWorker.Init();
             _mainWorker = worker;
+            _memServer = sharedMemServer;
+
+            _controlServer = csrv;
+
+           _controlServer.OnReceivedMessage += _memServer_OnMouseEvent;
+        }
+
+        private void _memServer_OnMouseEvent(MouseMessage msg)
+        {
+           // MessageBox.Show("_____MOUSE:" + msg.X + ";" + msg.Y);
+
+            log.Info("________Mouse event:"+msg.X+";"+msg.Y+";"+msg.Type);
+            switch (msg.Type)
+            {
+                case MouseEventType.LButtonDown:
+                    _mainWorker.MouseEvent(msg.X, msg.Y, false);
+                    break;
+                case MouseEventType.LButtonUp:
+                    _mainWorker.MouseEvent(msg.X, msg.Y, true);
+                    break;
+                case MouseEventType.Move:
+                    _mainWorker.MouseMoveEvent(msg.X,msg.Y);
+                    break;
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -121,7 +152,7 @@ namespace SharedPluginServer
             bmp.UnlockBits(bmd);
 
 
-
+            _memServer.WriteBytes(bytes);
             pictureBox1.Image = bmp;
         }
 
