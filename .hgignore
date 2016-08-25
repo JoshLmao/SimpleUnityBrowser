@@ -10,6 +10,8 @@ TestClient/obj/
 MessageLibrary/bin/
 MessageLibrary/obj/
 UnityClient/Library/CrashedAssetImports.txt
+UnityClient/Library
+UnityClient/Temp
 syntax: glob
 .DS_Store
 *.sln
