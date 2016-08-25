@@ -2,7 +2,7 @@ using Xilium.CefGlue;
 
 namespace SharedPluginServer
 {
-    class WorkerWebRequestHandler : CefRequestHandler
+    /*class WorkerWebRequestHandler : CefRequestHandler
     {
         protected override bool OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool isRedirect)
         {
@@ -14,5 +14,5 @@ namespace SharedPluginServer
         {
             CefWorker.BrowserMessageRouter.OnRenderProcessTerminated(browser);
         }
-    }
+    }*/
 }

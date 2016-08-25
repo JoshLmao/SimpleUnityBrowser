@@ -10,10 +10,11 @@ using MessageLibrary;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Wrapper;
 
+
 namespace SharedPluginServer
 {
 
-    public class CefWorker//:IDisposable
+    public class CefWorker:IDisposable
     {
         private static readonly log4net.ILog log =
     log4net.LogManager.GetLogger(typeof(CefWorker));
@@ -29,12 +30,15 @@ namespace SharedPluginServer
 
         public event LoadFinished OnLoadFinished;
 
-        public static CefMessageRouterBrowserSide BrowserMessageRouter { get; private set; }
+        //render
+       // Dispatcher _mainUiDispatcher;
+
+        // public static CefMessageRouterBrowserSide BrowserMessageRouter { get; private set; }
 
 
 
         #region IDisposable
-     /*   ~CefWorker()
+        ~CefWorker()
         {
             Dispose(false);
         }
@@ -47,16 +51,22 @@ namespace SharedPluginServer
 
         protected virtual void Dispose(bool disposing)
         {
-        }*/
+            if (disposing)
+            {
+                log.Info("=============SHUTTING DOWN========");
+                Shutdown();
+            }
+
+        }
         #endregion
 
         public void Init()
         {
             log.Info("___________INIT___________");
-            if (!_initialized)
+          //  if (!_initialized)
             {
                 // MessageBox.Show("_______INIT");
-                try
+                /*try
                 {
                     CefRuntime.Load();
                 }
@@ -75,37 +85,14 @@ namespace SharedPluginServer
                 {
                     log.ErrorFormat("{0} error", ex.Message);
 
-                }
+                }*/
 
 
-                var cefMainArgs = new CefMainArgs(new string[0]);
-                var cefApp = new WorkerCefApp();
-                if (CefRuntime.ExecuteProcess(cefMainArgs, cefApp) != -1)
-                {
-                   log.ErrorFormat("CefRuntime could not the secondary process.");
-                }
-                var cefSettings = new CefSettings
-                {
-                    SingleProcess = false,
-                    MultiThreadedMessageLoop = true,
-                    WindowlessRenderingEnabled = true,
-                    LogSeverity = CefLogSeverity.Info,
+                
 
+               
 
-
-                };
-
-                try
-                {
-                    CefRuntime.Initialize(cefMainArgs, cefSettings, cefApp, IntPtr.Zero);
-                }
-                catch (CefRuntimeException ex)
-                {
-                    log.ErrorFormat("{0} error", ex.Message);
-
-                }
-
-                RegisterMessageRouter();
+              //  RegisterMessageRouter();
 
                 CefWindowInfo cefWindowInfo = CefWindowInfo.Create();
                 cefWindowInfo.SetAsWindowless(IntPtr.Zero, false);
@@ -124,7 +111,7 @@ namespace SharedPluginServer
                 // MessageBox.Show("INITIALIZED");
                 //Application.Idle += (s, e) => CefRuntime.DoMessageLoopWork();
                 _initialized = true;
-                _client.OnLoadFinished += _client_OnLoadFinished;
+               // _client.OnLoadFinished += _client_OnLoadFinished;
             }
         }
 
@@ -133,7 +120,7 @@ namespace SharedPluginServer
             _client.SetMemServer(memServer);
         }
 
-        private void RegisterMessageRouter()
+        /*private void RegisterMessageRouter()
         {
             if (!CefRuntime.CurrentlyOn(CefThreadId.UI))
             {
@@ -145,7 +132,7 @@ namespace SharedPluginServer
             BrowserMessageRouter = new CefMessageRouterBrowserSide(new CefMessageRouterConfig());
             BrowserMessageRouter.AddHandler(new WorkerMessageRouterHandler());
             log.Info("BrowserMessageRouter created");
-        }
+        }*/
 
         #region Task
 
@@ -196,8 +183,8 @@ namespace SharedPluginServer
 
         public void Shutdown()
         {
-            //CefBrowserHost.
-            CefRuntime.Shutdown();
+            _client.Shutdown();
+          // 
         }
 
         public void Navigate(string url)

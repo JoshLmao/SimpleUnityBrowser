@@ -1,9 +1,9 @@
-﻿using Xilium.CefGlue;
+﻿/*using Xilium.CefGlue;
 using Xilium.CefGlue.Wrapper;
 
 namespace SharedPluginServer
 {
-    class WorkerCefRenderProcessHandler : CefRenderProcessHandler
+   /* class WorkerCefRenderProcessHandler : CefRenderProcessHandler
     {
         internal CefMessageRouterRendererSide MessageRouter { get; private set; }
 
@@ -37,4 +37,4 @@ namespace SharedPluginServer
             return false;
         }
     }
-}
+}*/

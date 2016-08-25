@@ -11,7 +11,7 @@ namespace SharedPluginServer
             MainBrowser = browser;
             MainBrowserHost = browser.GetHost();
         }
-        protected override bool DoClose(CefBrowser browser)
+     /*   protected override bool DoClose(CefBrowser browser)
         {
 
             // return false;
@@ -21,6 +21,6 @@ namespace SharedPluginServer
         protected override void OnBeforeClose(CefBrowser browser)
         {
             CefWorker.BrowserMessageRouter.OnBeforeClose(browser);
-        }
+        }*/
     }
 }

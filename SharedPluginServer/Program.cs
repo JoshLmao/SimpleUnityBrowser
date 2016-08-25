@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using MessageLibrary;
 using SharedPluginServer.Interprocess;
+using Xilium.CefGlue;
+using System.Windows;
 
 namespace SharedPluginServer
 {
@@ -36,7 +38,7 @@ namespace SharedPluginServer
 
         public void HandleMouse(EventPacket msg)
         {
-            log.Info("________Packet:" + msg.Type);
+          //  log.Info("________Packet:" + msg.Type);
 
             switch (msg.Type)
             {
@@ -53,13 +55,14 @@ namespace SharedPluginServer
                                 {
                                     log.Info("==============SHUTTING DOWN==========");
                                     SocketServer.OnReceivedMessage -= HandleMouse;
-                                        _mainWorker.Shutdown();
-                                    log.Info("___MAIN");
+                                       _mainWorker.Shutdown();
+                                    //log.Info("___MAIN");
                                      _memServer.Dispose();
                                    log.Info("___MEM");
                                     _controlServer.Shutdown();
                                      log.Info("___CONTROL");
-                                    Application.Exit();
+                                            
+                                            Application.Exit();
                                   // Environment.Exit(Environment.ExitCode);
                                 }
                                 catch (Exception e)
@@ -118,9 +121,14 @@ namespace SharedPluginServer
         }
     }
 
+    
+
 
     static class Program
     {
+        private static readonly log4net.ILog log =
+log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -131,6 +139,60 @@ namespace SharedPluginServer
             //log4net.Config.XmlConfigurator.Configure();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            ////////RUNTIME
+            try
+            {
+                CefRuntime.Load();
+            }
+            catch (DllNotFoundException ex)
+            {
+                //MessageBox.Show(ex.Message, "Error!");
+                //  return 1;
+                log.ErrorFormat("{0} error", ex.Message);
+            }
+            catch (CefRuntimeException ex)
+            {
+                log.ErrorFormat("{0} error", ex.Message);
+                //  return 2;
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("{0} error", ex.Message);
+
+            }
+
+            var cefMainArgs = new CefMainArgs(new string[0]);
+            var cefApp = new WorkerCefApp();
+            if (CefRuntime.ExecuteProcess(cefMainArgs, cefApp) != -1)
+            {
+                log.ErrorFormat("CefRuntime could not the secondary process.");
+                return;
+            }
+            var cefSettings = new CefSettings
+            {
+                SingleProcess = false,
+                MultiThreadedMessageLoop = true,
+                WindowlessRenderingEnabled = true,
+                LogSeverity = CefLogSeverity.Info,
+
+
+
+            };
+
+            try
+            {
+                CefRuntime.Initialize(cefMainArgs, cefSettings, cefApp, IntPtr.Zero);
+            }
+            catch (CefRuntimeException ex)
+            {
+                log.ErrorFormat("{0} error", ex.Message);
+
+            }
+
+            //
+
+
             CefWorker worker=new CefWorker();
            worker.Init();
             SharedMemServer _server=new SharedMemServer();
@@ -151,9 +213,11 @@ namespace SharedPluginServer
 
             Application.Run();
 
-           // Application.Run(new Form1(worker,_server,ssrv));
+            // Application.Run(new Form1(worker,_server,ssrv));
 
             //ssrv.Shutdown();
+            CefRuntime.Shutdown();
+
         }
     }
 }

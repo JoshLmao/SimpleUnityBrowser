@@ -139,7 +139,7 @@ namespace SharedPluginServer
 
         public void RenderBitmap(Object stateInfo)
         {
-            byte[] bytes = _mainWorker.GetBitmap();
+          /*  byte[] bytes = _mainWorker.GetBitmap();
 
             //IntPtr unmanagedPointer = Marshal.AllocHGlobal(bytes.Length);
             //Marshal.Copy(bytes, 0, unmanagedPointer, bytes.Length);
@@ -153,7 +153,7 @@ namespace SharedPluginServer
 
 
             _memServer.WriteBytes(bytes);
-            pictureBox1.Image = bmp;
+            pictureBox1.Image = bmp;*/
         }
 
         private void _mainWorker_OnLoadFinished(int StatusCode)

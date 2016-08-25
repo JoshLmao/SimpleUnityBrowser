@@ -11,10 +11,18 @@ namespace SharedPluginServer
         private static readonly log4net.ILog log =
   log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 #endif
+
+        //required:
+        //lifespan+,
+        //display? - status,console, etc
+        //render+,
+        //load+,
+        //dialog - later
+
         private readonly WorkerCefLoadHandler _loadHandler;
         private readonly WorkerCefRenderHandler _renderHandler;
         private readonly WorkerLifespanHandler _lifespanHandler;
-        private readonly WorkerWebRequestHandler _requestHandler;
+      //  private readonly WorkerWebRequestHandler _requestHandler;
 
 
         public delegate void LoadFinished(int StatusCode);
@@ -25,17 +33,17 @@ namespace SharedPluginServer
         {
             _renderHandler = new WorkerCefRenderHandler(windowWidth, windowHeight);
             _loadHandler = new WorkerCefLoadHandler();
-            _loadHandler.OnLoadFinished += _loadHandler_OnLoadFinished;
+           // _loadHandler.OnLoadFinished += _loadHandler_OnLoadFinished;
             _lifespanHandler=new WorkerLifespanHandler();
-            _requestHandler=new WorkerWebRequestHandler();
+          //  _requestHandler=new WorkerWebRequestHandler();
 
            
         }
 
-        protected override CefRequestHandler GetRequestHandler()
+        /*protected override CefRequestHandler GetRequestHandler()
         {
             return _requestHandler;
-        }
+        }*/
 
         public void SetMemServer(SharedMemServer memServer)
         {
@@ -44,10 +52,10 @@ namespace SharedPluginServer
 
       
 
-        private void _loadHandler_OnLoadFinished(int StatusCode)
-        {
-            OnLoadFinished?.Invoke(StatusCode);
-        }
+       // private void _loadHandler_OnLoadFinished(int StatusCode)
+        //{
+         //   OnLoadFinished?.Invoke(StatusCode);
+        //}
 
         protected override CefRenderHandler GetRenderHandler()
         {
@@ -55,14 +63,14 @@ namespace SharedPluginServer
             return _renderHandler;
         }
 
-        protected override bool OnProcessMessageReceived(CefBrowser browser, CefProcessId sourceProcess,
+       /* protected override bool OnProcessMessageReceived(CefBrowser browser, CefProcessId sourceProcess,
             CefProcessMessage message)
         {
             var handled = CefWorker.BrowserMessageRouter.OnProcessMessageReceived(browser, sourceProcess, message);
             if (handled) return true;
 
             return false;
-        }
+        }*/
 
 
         protected override CefLoadHandler GetLoadHandler()
@@ -136,6 +144,14 @@ namespace SharedPluginServer
                 keyEvent.EventType=CefKeyEventType.KeyUp;
 
             _lifespanHandler.MainBrowser.GetHost().SendKeyEvent(keyEvent);
+        }
+
+        public void Shutdown()
+        {
+            _lifespanHandler.MainBrowser.GetHost().CloseBrowser();
+            _lifespanHandler.MainBrowser.Dispose();
+
+
         }
     }
 }

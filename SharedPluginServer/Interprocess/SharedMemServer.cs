@@ -45,7 +45,10 @@ namespace SharedPluginServer
             if (_isOpen)
             {
                 if (bytes.Length > _sharedBuf.Length)
+                {
+                  //  log.Info("______RESIZING SHARED MEM");
                     Resize(bytes.Length);
+                }
                 _sharedBuf.Write(bytes);
             }
         }
