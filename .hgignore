@@ -9,3 +9,15 @@ TestClient/bin/
 TestClient/obj/
 MessageLibrary/bin/
 MessageLibrary/obj/
+UnityClient/Library/CrashedAssetImports.txt
+syntax: glob
+.DS_Store
+*.sln
+*.userprefs
+*.csproj
+*.pidb
+*.unitypackage
+syntax: regexp
+^Build/.*
+^Library/.*
+^Temp/.*

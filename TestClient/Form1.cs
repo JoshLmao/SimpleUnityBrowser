@@ -31,11 +31,10 @@ namespace TestClient
 
        
 
-        const int BMWidth = 1280;
-        const int BMHeight = 1024;
+        //const int BMWidth = 1280;
+        //const int BMHeight = 1024;
 
-        private bool _MouseDone = true;
-
+       
         private int posX = 0;
         private int posY = 0;
 
@@ -57,6 +56,8 @@ namespace TestClient
 
         public void Init()
         {
+
+            string args = pictureBox1.Width.ToString() + " " + pictureBox1.Height.ToString();
             Process pluginProcess = new Process()
             {
                 StartInfo = new ProcessStartInfo()
@@ -64,7 +65,9 @@ namespace TestClient
                     WorkingDirectory =
                         @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug",
                     FileName =
-                        @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe"
+                        @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
+                    Arguments = args
+                    
                 }
             };
             pluginProcess.Start();
@@ -88,7 +91,7 @@ namespace TestClient
             clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             clientSocket.Connect(new IPEndPoint(ip, 8885));
 
-            _texture = new Bitmap(BMWidth, BMHeight);
+            _texture = new Bitmap(pictureBox1.Width, pictureBox1.Width);
 
             Application.Idle += Application_Idle;
         }
@@ -104,7 +107,7 @@ namespace TestClient
             arr.CopyTo(_read, 0);
 
             
-            Rectangle rect = new Rectangle(0, 0, BMWidth, BMHeight);
+            Rectangle rect = new Rectangle(0, 0, pictureBox1.Width, pictureBox1.Height);
             BitmapData bmpData = _texture.LockBits(rect, ImageLockMode.WriteOnly, _texture.PixelFormat);
             IntPtr ptr = bmpData.Scan0;
             System.Runtime.InteropServices.Marshal.Copy(_read, 0, ptr, _read.Length);
