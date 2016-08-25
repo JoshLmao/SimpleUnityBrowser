@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Threading.Tasks;
+
 
 using System.Net.Sockets;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using MessageLibrary;
+
 
 
 namespace SharedPluginServer.Interprocess
@@ -23,105 +25,131 @@ namespace SharedPluginServer.Interprocess
  log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
-        private static byte[] result = new byte[2048];
+       
         private  int myPort = 8885;
-        Socket _serverSocket;
+        private TcpListener _listener;
 
-        private Socket _clientSocket=null;
-
-       private static volatile bool _shouldStop = false;
+        private Thread listenerThread;
 
         public delegate void ReceivedMessage(EventPacket msg);
 
-       private Thread _connectThread;
-       private Thread _listenThread;
+       private static volatile bool isWorking = true;
 
-        public event ReceivedMessage OnReceivedMessage;
+        public static event ReceivedMessage OnReceivedMessage;
 
         public void Init()
         {
-            IPAddress ip = IPAddress.Parse("127.0.0.1");
-            _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _serverSocket.Bind(new IPEndPoint(ip, myPort));
-            _serverSocket.Listen(10);
-            log.Info("_____LISTEN___");
-            _connectThread = new Thread(ListenClientConnect);
-            _connectThread.Start(this);
+
+            listenerThread = new Thread(new ThreadStart(ListenCallback));
+            listenerThread.IsBackground = true;
+            listenerThread.Start();
         }
 
-        private  static void ListenClientConnect(object srv)
-        {
-            SocketServer _server=srv as SocketServer;
-
-            while (!_shouldStop)
+       private void ListenCallback()
+       {
+            try
             {
-                
-                _server._clientSocket = _server._serverSocket.Accept();
-                // if (!m_ClientSocketList.Contains(socket))
-                //     m_ClientSocketList.Add(socket);
-                //  socket.Send(Encoding.UTF8.GetBytes("Connect to server!!!"));
-                log.Info("_____CONNECTED___");
-                _server._listenThread = new Thread(_server.ReceiveMessage);
-                _server._listenThread.Start(_server);
-            }
-        }
+                _listener = new TcpListener(System.Net.IPAddress.Any, myPort);
+                _listener.Start();
 
-       // void SendString(string str)
-        //{
-         //   _clientSocket.Send
-       // }
-
-        private  void ReceiveMessage(object srv)
-        {
-            SocketServer _server = (SocketServer)srv;
-            while (!_shouldStop)
-            {
-                try
+                do
                 {
-                    
-                    int receiveNumber = _server._clientSocket.Receive(result);
-
-                   // log.Info("__RECEIVED___:"+receiveNumber);
-                    try
-                    {
-                        BinaryFormatter bf = new BinaryFormatter();
-                        MemoryStream str = new MemoryStream(result);
-                        EventPacket msg = (EventPacket)bf.Deserialize(str);
-
-                        _server.OnReceivedMessage?.Invoke(msg);
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error("_______SERIALIZATION ERROR:"+ex.Message);
-                    }
-//string data = Encoding.ASCII.GetString(result, 0, receiveNumber);
-                    
                    
-                    //call something
-                }
-                catch (Exception ex)
-                {
-                   log.Error("_______SOCKET:"+ex.Message);
-                    //m_ClientSocketList.Remove(myClientSocket);
-                    if (_server != null)
-                    {
-                        _server._clientSocket?.Shutdown(SocketShutdown.Both);
-                        _server._clientSocket?.Close();
-                    }
-                    break;
-                }
+                   // UserConnection client = new UserConnection(_listener.AcceptTcpClient());
+                   DoBeginAcceptTcpClient(_listener);
+                   
+
+
+                   // client.OnLineReceived += OnLineReceived;
+                   
+                } while (isWorking);
+
+                _listener.Stop();
+            }
+            catch (Exception) //we have: A blocking operation was interrupted by a call to WSACancelBlockingCall
+            {
+
+                
             }
         }
+
+        #region async stuff
+        // Thread signal.
+        public static ManualResetEvent tcpClientConnected =
+    new ManualResetEvent(false);
+
+        // Accept one client connection asynchronously.
+        public static void DoBeginAcceptTcpClient(TcpListener
+            listener)
+        {
+            // Set the event to nonsignaled state.
+            tcpClientConnected.Reset();
+
+            // Start to listen for connections from a client.
+           // Console.WriteLine("Waiting for a connection...");
+
+            // Accept the connection. 
+            // BeginAcceptSocket() creates the accepted socket.
+            listener.BeginAcceptTcpClient(
+                new AsyncCallback(DoAcceptTcpClientCallback),
+                listener);
+
+            // Wait until a connection is made and processed before 
+            // continuing.
+            tcpClientConnected.WaitOne();
+        }
+
+        // Process the client connection.
+        public static void DoAcceptTcpClientCallback(IAsyncResult ar)
+        {
+            if (isWorking)
+            {
+                // Get the listener that handles the client request.
+                TcpListener listener = (TcpListener) ar.AsyncState;
+
+                // End the operation and display the received data on 
+                // the console.
+                TcpClient client = listener.EndAcceptTcpClient(ar);
+
+                UserConnection uclient = new UserConnection(client);
+
+                uclient.OnLineReceived += OnLineReceived;
+                // Signal the calling thread to continue.
+                tcpClientConnected.Set();
+            }
+
+        }
+        #endregion
+
+        private static void OnLineReceived(UserConnection sender, byte[] data)
+       {
+            //send a message
+           try
+           {
+                MemoryStream mstr = new MemoryStream(data);
+                BinaryFormatter bf = new BinaryFormatter();
+                EventPacket ep=bf.Deserialize(mstr) as EventPacket;
+               if (ep != null)
+               {
+                   //log.Info("_________PACKET:"+ep.Type);
+                   OnReceivedMessage?.Invoke(ep);
+               }
+            }
+           catch (Exception)
+           {
+               
+            //   throw;
+           }
+       }
+
+
+       
 
        public void Shutdown()
        {
-            _clientSocket?.Shutdown(SocketShutdown.Both);
-            _clientSocket?.Close();
-
-           // MessageBox.Show("_______SHUTDOWN");
-           _shouldStop = true;
-            //_connectThread?.Abort();
-            //_listenThread?.Abort();
+           isWorking = false;
+           tcpClientConnected.Set();
+           //_listener.Stop();
        }
 
        ~SocketServer()
@@ -130,7 +158,68 @@ namespace SharedPluginServer.Interprocess
        }
     }
 
+#region client
+    public delegate void LineReceive(UserConnection sender, byte[] Data);
 
+    public class UserConnection
+    {
+        const int READ_BUFFER_SIZE = 2048;
+        // Overload the new operator to set up a read thread.
+        public UserConnection(TcpClient client)
+        {
+            this.client = client;
+            // This starts the asynchronous read thread.  The data will be saved into
+            // readBuffer.
+            this.client.GetStream().BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
+        }
 
-   
+        private TcpClient client;
+        private byte[] readBuffer = new byte[READ_BUFFER_SIZE];
+
+        public event LineReceive OnLineReceived;
+
+        // This subroutine uses a StreamWriter to send a message to the user.
+        public void SendData(byte[] Data)
+        {
+            //lock ensure that no other threads try to use the stream at the same time.
+            lock (client.GetStream())
+            {
+                // StreamWriter writer = new StreamWriter(client.GetStream());
+                //writer.Write(Data + (char)13 + (char)10);
+                // Make sure all data is sent now.
+                // writer.Flush();
+                client.GetStream().Write(Data, 0, Data.Length);
+            }
+        }
+
+        private void StreamReceiver(IAsyncResult ar)
+        {
+            int BytesRead;
+           
+            try
+            {
+                // Ensure that no other threads try to use the stream at the same time.
+                lock (client.GetStream())
+                {
+                    // Finish asynchronous read into readBuffer and get number of bytes read.
+                    BytesRead = client.GetStream().EndRead(ar);
+                }
+                // Convert the byte array the message was saved into, minus one for the
+                // Chr(13).
+
+                OnLineReceived?.Invoke(this, readBuffer);
+                // Ensure that no other threads try to use the stream at the same time.
+                lock (client.GetStream())
+                {
+                    // Start a new asynchronous read into readBuffer.
+                    client.GetStream()
+                        .BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
+                }
+            }
+            catch (Exception e)
+            {
+            }
+        }
+    }
+    #endregion
 }

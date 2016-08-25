@@ -3,7 +3,7 @@ using Xilium.CefGlue;
 
 namespace SharedPluginServer
 {
-    class DemoCefLoadHandler : CefLoadHandler
+    class WorkerCefLoadHandler : CefLoadHandler
     {
         public delegate void LoadFinished(int StatusCode);
 

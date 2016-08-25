@@ -2,7 +2,7 @@ using Xilium.CefGlue;
 
 namespace SharedPluginServer
 {
-    class DemoLifespanHandler : CefLifeSpanHandler
+    class WorkerLifespanHandler : CefLifeSpanHandler
     {
         public CefBrowser MainBrowser;
         public CefBrowserHost MainBrowserHost;
@@ -13,7 +13,8 @@ namespace SharedPluginServer
         }
         protected override bool DoClose(CefBrowser browser)
         {
-            // TODO: dispose core
+
+            // return false;
             return false;
         }
 

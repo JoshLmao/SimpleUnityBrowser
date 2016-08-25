@@ -42,7 +42,7 @@ namespace TestClient
 
         //  private Queue<MouseMessage> _sendEvents; 
 
-        SharedArray<byte> arr = new SharedArray<byte>("MainSharedMem");
+       SharedArray<byte> arr = new SharedArray<byte>("MainSharedMem");
 
         private Bitmap _texture;
 
@@ -84,7 +84,7 @@ namespace TestClient
         {
 
            
-            byte[] _read = new byte[arr.Length];
+          /*  byte[] _read = new byte[arr.Length];
 
             arr.CopyTo(_read, 0);
 
@@ -95,7 +95,7 @@ namespace TestClient
             System.Runtime.InteropServices.Marshal.Copy(_read, 0, ptr, _read.Length);
             bmp.UnlockBits(bmpData);
 
-            pictureBox1.Image = bmp;
+            pictureBox1.Image = bmp;*/
 
             ////
 
@@ -112,7 +112,7 @@ namespace TestClient
         {
             SendShutdownEvent();
             Application.Idle -= Application_Idle;
-            // clientSocket.Close();
+            clientSocket.Close();
             
         }
 

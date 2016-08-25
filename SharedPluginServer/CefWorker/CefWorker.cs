@@ -21,7 +21,7 @@ namespace SharedPluginServer
         [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
         public static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
 
-        private DemoCefClient _client;
+        private WorkerCefClient _client;
 
         private static bool _initialized = false;
 
@@ -30,6 +30,8 @@ namespace SharedPluginServer
         public event LoadFinished OnLoadFinished;
 
         public static CefMessageRouterBrowserSide BrowserMessageRouter { get; private set; }
+
+
 
         #region IDisposable
      /*   ~CefWorker()
@@ -77,7 +79,7 @@ namespace SharedPluginServer
 
 
                 var cefMainArgs = new CefMainArgs(new string[0]);
-                var cefApp = new DemoCefApp();
+                var cefApp = new WorkerCefApp();
                 if (CefRuntime.ExecuteProcess(cefMainArgs, cefApp) != -1)
                 {
                    log.ErrorFormat("CefRuntime could not the secondary process.");
@@ -86,8 +88,11 @@ namespace SharedPluginServer
                 {
                     SingleProcess = false,
                     MultiThreadedMessageLoop = true,
-                    //WindowlessRenderingEnabled = true,
-                    LogSeverity = CefLogSeverity.Info
+                    WindowlessRenderingEnabled = true,
+                    LogSeverity = CefLogSeverity.Info,
+
+
+
                 };
 
                 try
@@ -111,7 +116,7 @@ namespace SharedPluginServer
                 cefBrowserSettings.TabToLinks=CefState.Enabled;
                 cefBrowserSettings.WebSecurity=CefState.Disabled;
 
-                _client = new DemoCefClient(1280, 720);
+                _client = new WorkerCefClient(1280, 720);
                 //string url = "http://www.reddit.com/";
                 string url = "http://www.yandex.ru/";
                 CefBrowserHost.CreateBrowser(cefWindowInfo, _client, cefBrowserSettings, url);
@@ -138,7 +143,7 @@ namespace SharedPluginServer
 
             // window.cefQuery({ request: 'my_request', onSuccess: function(response) { console.log(response); }, onFailure: function(err,msg) { console.log(err, msg); } });
             BrowserMessageRouter = new CefMessageRouterBrowserSide(new CefMessageRouterConfig());
-            BrowserMessageRouter.AddHandler(new DemoMessageRouterHandler());
+            BrowserMessageRouter.AddHandler(new WorkerMessageRouterHandler());
             log.Info("BrowserMessageRouter created");
         }
 
@@ -191,6 +196,7 @@ namespace SharedPluginServer
 
         public void Shutdown()
         {
+            //CefBrowserHost.
             CefRuntime.Shutdown();
         }
 

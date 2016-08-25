@@ -5,29 +5,29 @@ using Xilium.CefGlue;
 
 namespace SharedPluginServer
 {
-    class DemoCefClient : CefClient
+    class WorkerCefClient : CefClient
     {
 #if DEBUG
         private static readonly log4net.ILog log =
   log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 #endif
-        private readonly DemoCefLoadHandler _loadHandler;
-        private readonly DemoCefRenderHandler _renderHandler;
-        private readonly DemoLifespanHandler _lifespanHandler;
-        private readonly WebRequestHandler _requestHandler;
+        private readonly WorkerCefLoadHandler _loadHandler;
+        private readonly WorkerCefRenderHandler _renderHandler;
+        private readonly WorkerLifespanHandler _lifespanHandler;
+        private readonly WorkerWebRequestHandler _requestHandler;
 
 
         public delegate void LoadFinished(int StatusCode);
 
         public event LoadFinished OnLoadFinished;
 
-        public DemoCefClient(int windowWidth, int windowHeight)
+        public WorkerCefClient(int windowWidth, int windowHeight)
         {
-            _renderHandler = new DemoCefRenderHandler(windowWidth, windowHeight);
-            _loadHandler = new DemoCefLoadHandler();
+            _renderHandler = new WorkerCefRenderHandler(windowWidth, windowHeight);
+            _loadHandler = new WorkerCefLoadHandler();
             _loadHandler.OnLoadFinished += _loadHandler_OnLoadFinished;
-            _lifespanHandler=new DemoLifespanHandler();
-            _requestHandler=new WebRequestHandler();
+            _lifespanHandler=new WorkerLifespanHandler();
+            _requestHandler=new WorkerWebRequestHandler();
 
            
         }

@@ -31,12 +31,12 @@ namespace SharedPluginServer
 
             _mainWorker.SetMemServer(_memServer);
 
-            _controlServer.OnReceivedMessage += HandleMouse;
+            SocketServer.OnReceivedMessage += HandleMouse;
         }
 
         public void HandleMouse(EventPacket msg)
         {
-           // log.Info("________Packet:" + msg.Type);
+            log.Info("________Packet:" + msg.Type);
 
             switch (msg.Type)
             {
@@ -49,11 +49,25 @@ namespace SharedPluginServer
                         {
                              case GenericEventType.Shutdown:
                             {
-                                        log.Info("==============SHUTTING DOWN==========");
+                                try
+                                {
+                                    log.Info("==============SHUTTING DOWN==========");
+                                    SocketServer.OnReceivedMessage -= HandleMouse;
                                         _mainWorker.Shutdown();
-                                        _memServer.Dispose();
-                                        _controlServer.Shutdown();
-                                Application.Exit();
+                                    log.Info("___MAIN");
+                                     _memServer.Dispose();
+                                   log.Info("___MEM");
+                                    _controlServer.Shutdown();
+                                     log.Info("___CONTROL");
+                                    Application.Exit();
+                                  // Environment.Exit(Environment.ExitCode);
+                                }
+                                catch (Exception e)
+                                {
+
+                                    log.Info("______EXIT:"+e.StackTrace);
+                                }
+
                                 break;
                             }
                         }
@@ -66,12 +80,9 @@ namespace SharedPluginServer
                         KeyboardEvent keyboardEvent=msg.Event as KeyboardEvent;
                     if (keyboardEvent != null)
                     {
-                      //  switch (keyboardEvent.Type)
-                      //  {
-                               // case KeyboardEventType.CharKey:
+                     
                                     _mainWorker.CharEvent(keyboardEvent.Key,keyboardEvent.Type);
-                               // break;
-                       // }
+                         
                     }
                     break;
                 }
@@ -103,7 +114,7 @@ namespace SharedPluginServer
 
         ~App()
         {
-            _mainWorker.Shutdown();
+            //_mainWorker.Shutdown();
         }
     }
 
@@ -121,7 +132,7 @@ namespace SharedPluginServer
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             CefWorker worker=new CefWorker();
-            worker.Init();
+           worker.Init();
             SharedMemServer _server=new SharedMemServer();
             _server.Init(1);
 
@@ -136,6 +147,7 @@ namespace SharedPluginServer
             ssrv.Init();
 
             var app=new App(worker,_server,ssrv);
+           // var app = new App(null, _server, ssrv);
 
             Application.Run();
 

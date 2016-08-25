@@ -7,7 +7,7 @@ using Xilium.CefGlue;
 
 namespace SharedPluginServer
 {
-    class DemoCefRenderHandler : CefRenderHandler
+    class WorkerCefRenderHandler : CefRenderHandler
     {
         private readonly int _windowHeight;
         private readonly int _windowWidth;
@@ -21,7 +21,7 @@ namespace SharedPluginServer
 
         public SharedMemServer _memServer = null;
 
-        public DemoCefRenderHandler(int windowWidth, int windowHeight)
+        public WorkerCefRenderHandler(int windowWidth, int windowHeight)
         {
             _windowWidth = windowWidth;
             _windowHeight = windowHeight;

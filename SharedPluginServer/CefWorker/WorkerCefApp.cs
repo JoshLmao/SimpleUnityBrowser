@@ -3,15 +3,15 @@ using Xilium.CefGlue.Wrapper;
 
 namespace SharedPluginServer
 {
-    class DemoCefApp : CefApp
+    class WorkerCefApp : CefApp
     {
-        private readonly DemoCefRenderProcessHandler _renderProcessHandler;
+        private readonly WorkerCefRenderProcessHandler _renderProcessHandler;
 
        
 
-        public DemoCefApp()
+        public WorkerCefApp()
         {
-            _renderProcessHandler=new DemoCefRenderProcessHandler();
+            _renderProcessHandler=new WorkerCefRenderProcessHandler();
 
         }
 
