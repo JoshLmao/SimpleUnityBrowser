@@ -55,32 +55,10 @@ namespace SharedPluginServer
         }
         #endregion
 
-        public void Init()
+        public void Init(int width,int height,string starturl)
         {
             log.Info("___________INIT___________");
-          //  if (!_initialized)
-            {
-                // MessageBox.Show("_______INIT");
-                /*try
-                {
-                    CefRuntime.Load();
-                }
-                catch (DllNotFoundException ex)
-                {
-                    //MessageBox.Show(ex.Message, "Error!");
-                    //  return 1;
-                    log.ErrorFormat("{0} error", ex.Message);
-                }
-                catch (CefRuntimeException ex)
-                {
-                    log.ErrorFormat("{0} error", ex.Message);
-                    //  return 2;
-                }
-                catch (Exception ex)
-                {
-                    log.ErrorFormat("{0} error", ex.Message);
-
-                }*/
+          
 
 
                 
@@ -98,16 +76,20 @@ namespace SharedPluginServer
                 cefBrowserSettings.TabToLinks=CefState.Enabled;
                 cefBrowserSettings.WebSecurity=CefState.Disabled;
 
-                _client = new WorkerCefClient(1280, 720);
-                //string url = "http://www.reddit.com/";
-                string url = "http://www.yandex.ru/";
+            _client = new WorkerCefClient(width, height);
+            //_client = new WorkerCefClient(1280, 720);
+            //string url = "http://www.reddit.com/";
+
+            string url = "http://www.yandex.ru/";
+            if (starturl != "")
+                url = starturl;
                 CefBrowserHost.CreateBrowser(cefWindowInfo, _client, cefBrowserSettings, url);
 
                 // MessageBox.Show("INITIALIZED");
                 //Application.Idle += (s, e) => CefRuntime.DoMessageLoopWork();
                 _initialized = true;
                // _client.OnLoadFinished += _client_OnLoadFinished;
-            }
+            
         }
 
         public void SetMemServer(SharedMemServer memServer)
@@ -184,14 +166,14 @@ namespace SharedPluginServer
             _client.Navigate(url);
         }
 
-        public void MouseEvent(int x, int y,bool updown)
+        public void MouseEvent(int x, int y,bool updown,MouseButton button)
         {
-            _client.MouseEvent(x,y,updown);
+            _client.MouseEvent(x,y,updown,button);
         }
 
-        public void MouseMoveEvent(int x, int y)
+        public void MouseMoveEvent(int x, int y,MouseButton button)
         {
-            _client.MouseMoveEvent(x, y);
+            _client.MouseMoveEvent(x, y,button);
         }
 
         public void KeyboardEvent(int character,KeyboardEventType type)

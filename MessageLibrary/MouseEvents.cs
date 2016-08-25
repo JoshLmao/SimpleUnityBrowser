@@ -9,12 +9,21 @@ namespace MessageLibrary
     public enum MouseEventType
     {
         Done = -1,
-        LButtonDown = 0,
-        LButtonUp = 1,
+        ButtonDown = 0,
+        ButtonUp = 1,
         Move = 2,
         Leave=3,
         Wheel=4,
+       
 
+    }
+
+    public enum MouseButton
+    {
+        Left=0,
+        Right=1,
+        Middle=2,
+        None=4
     }
 
     [Serializable]
@@ -24,6 +33,7 @@ namespace MessageLibrary
         public int Y { get; set; }
         public int Delta { get; set; }
         public MouseEventType Type { get; set; }
+        public MouseButton Button { get; set; }
 
         public static bool operator ==(MouseMessage m1, MouseMessage m2)
         {
@@ -53,6 +63,7 @@ namespace MessageLibrary
                 hash = hash * 23 + Y.GetHashCode();
                 hash = hash * 23 + Type.GetHashCode();
                 hash = hash * 23 + Delta.GetHashCode();
+                hash = hash * 23 + Button.GetHashCode();
                 return hash;
             }
         }

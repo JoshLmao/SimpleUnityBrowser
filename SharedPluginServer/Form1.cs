@@ -51,19 +51,19 @@ namespace SharedPluginServer
         {
            // MessageBox.Show("_____MOUSE:" + msg.X + ";" + msg.Y);
 
-            log.Info("________Mouse event:"+msg.X+";"+msg.Y+";"+msg.Type);
+           /* log.Info("________Mouse event:"+msg.X+";"+msg.Y+";"+msg.Type);
             switch (msg.Type)
             {
-                case MouseEventType.LButtonDown:
+                case MouseEventType.ButtonDown:
                     _mainWorker.MouseEvent(msg.X, msg.Y, false);
                     break;
-                case MouseEventType.LButtonUp:
+                case MouseEventType.ButtonUp:
                     _mainWorker.MouseEvent(msg.X, msg.Y, true);
                     break;
                 case MouseEventType.Move:
                     _mainWorker.MouseMoveEvent(msg.X,msg.Y);
                     break;
-            }
+            }*/
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -225,17 +225,17 @@ namespace SharedPluginServer
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
-            _mainWorker.MouseEvent(e.X, e.Y,false);
+         //   _mainWorker.MouseEvent(e.X, e.Y,false);
         }
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
-            _mainWorker.MouseEvent(e.X, e.Y, true);
+         //   _mainWorker.MouseEvent(e.X, e.Y, true);
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
-            _mainWorker.MouseMoveEvent(e.X,e.Y);
+            //_mainWorker.MouseMoveEvent(e.X,e.Y);
         }
     }
 

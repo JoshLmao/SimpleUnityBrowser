@@ -104,7 +104,7 @@ namespace SharedPluginServer
         }
 
         #region Events
-        public void MouseEvent(int x,int y,bool updown)
+        public void MouseEvent(int x,int y,bool updown,MouseButton button)
         {
             //_lifespanHandler.MainBrowserHost.SendFocusEvent(true);
             //_lifespanHandler.MainBrowser.GetHost().SendFocusEvent(true);
@@ -114,20 +114,45 @@ namespace SharedPluginServer
                 Y =y,
             };
             CefEventFlags modifiers = new CefEventFlags();
-            modifiers |= CefEventFlags.LeftMouseButton;
+            CefMouseButtonType mouse=CefMouseButtonType.Left;
+            if (button == MouseButton.Left)
+            {
+                modifiers |= CefEventFlags.LeftMouseButton;
+                mouse=CefMouseButtonType.Left;
+            }
+            if (button == MouseButton.Right)
+            {
+                mouse = CefMouseButtonType.Right;
+                modifiers |= CefEventFlags.RightMouseButton;
+            }
+            if (button == MouseButton.Middle)
+            {
+                mouse = CefMouseButtonType.Middle;
+                modifiers |= CefEventFlags.MiddleMouseButton;
+            }
             mouseEvent.Modifiers = modifiers;
           // log.Info("CLICK:" + x + "," + y);
-            _lifespanHandler.MainBrowser.GetHost().SendMouseClickEvent(mouseEvent,CefMouseButtonType.Left, updown,1);
+          
+
+            _lifespanHandler.MainBrowser.GetHost().SendMouseClickEvent(mouseEvent,mouse, updown,1);
             
         }
 
-        public void MouseMoveEvent(int x, int y)
+        public void MouseMoveEvent(int x, int y,MouseButton button)
         {
             CefMouseEvent mouseEvent = new CefMouseEvent()
             {
                 X = x,
                 Y = y,
             };
+            CefEventFlags modifiers = new CefEventFlags();
+            if (button == MouseButton.Left)
+                modifiers |= CefEventFlags.LeftMouseButton;
+            if (button == MouseButton.Right)
+                modifiers |= CefEventFlags.RightMouseButton;
+            if (button == MouseButton.Middle)
+                modifiers |= CefEventFlags.MiddleMouseButton;
+            mouseEvent.Modifiers = modifiers;
             _lifespanHandler.MainBrowser.GetHost().SendMouseMoveEvent(mouseEvent,false);
         }
 

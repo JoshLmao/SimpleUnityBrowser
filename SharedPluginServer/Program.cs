@@ -98,14 +98,14 @@ namespace SharedPluginServer
                         {
                             switch (mouseMessage.Type)
                             {
-                                case MouseEventType.LButtonDown:
-                                    _mainWorker.MouseEvent(mouseMessage.X, mouseMessage.Y, false);
+                                case MouseEventType.ButtonDown:
+                                    _mainWorker.MouseEvent(mouseMessage.X, mouseMessage.Y, false,mouseMessage.Button);
                                     break;
-                                case MouseEventType.LButtonUp:
-                                    _mainWorker.MouseEvent(mouseMessage.X, mouseMessage.Y, true);
+                                case MouseEventType.ButtonUp:
+                                    _mainWorker.MouseEvent(mouseMessage.X, mouseMessage.Y, true,mouseMessage.Button);
                                     break;
                                 case MouseEventType.Move:
-                                    _mainWorker.MouseMoveEvent(mouseMessage.X, mouseMessage.Y);
+                                    _mainWorker.MouseMoveEvent(mouseMessage.X, mouseMessage.Y, mouseMessage.Button);
                                     break;
                                     case MouseEventType.Leave:
                                     _mainWorker.MouseLeaveEvent();
@@ -136,11 +136,25 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
         /// <summary>
         /// The main entry point for the application.
+        /// args:
+        /// width,
+        /// height,
+        /// initialURL
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
+       // static void Main()
         {
 
+            int defWidth = 1280;
+            int defHeight = 720;
+            string defUrl = "http://www.yandex.ru";
+
+
+            log.Info("ARGS:"+args.Length);
+          
+
+           
             
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -195,13 +209,23 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
             }
 
-            //
+            //WARNING: process command line AFTER initialization
+
+            if (args.Length > 1)
+            {
+                
+                  defWidth = Int32.Parse(args[0]);
+                 defHeight=Int32.Parse(args[1]);
+                log.Info("width:"+defWidth+",height:"+defHeight);
+            }
+            if (args.Length > 2)
+                defUrl = args[2];
 
 
-            CefWorker worker=new CefWorker();
-           worker.Init();
+            CefWorker worker =new CefWorker();
+           worker.Init(defWidth,defHeight,defUrl);
             SharedMemServer _server=new SharedMemServer();
-            _server.Init(1);
+            _server.Init(defWidth*defHeight*4);
 
            
             SocketServer ssrv=new SocketServer();

@@ -77,6 +77,7 @@ namespace SharedPluginServer
                // _copysize = bmpData.Stride * MainBitmap.Height
 
                 MainBitmap = new byte[_copysize];
+                
               
             }
 

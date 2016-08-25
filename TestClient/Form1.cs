@@ -184,7 +184,7 @@ namespace TestClient
         {
             MouseMessage msg = new MouseMessage
             {
-                Type=MouseEventType.LButtonDown,
+                Type=MouseEventType.ButtonDown,
                 X=e.X,
                 Y=e.Y,
                 GenericType = EventType.Mouse
@@ -202,8 +202,17 @@ namespace TestClient
                 X = e.X,
                 Y = e.Y,
                 Delta = e.Delta,
-                GenericType = EventType.Mouse
+                GenericType = EventType.Mouse,
+                Button = MouseButton.None
             };
+
+            if(e.Button==MouseButtons.Left)
+                msg.Button=MouseButton.Left;
+            if (e.Button == MouseButtons.Right)
+                msg.Button = MouseButton.Right;
+            if (e.Button == MouseButtons.Middle)
+                msg.Button = MouseButton.Middle;
+
             SendMouseEvent(msg);
         }
 
@@ -218,8 +227,17 @@ namespace TestClient
                     Type = MouseEventType.Move,
                     X = e.X,
                     Y = e.Y,
-                    GenericType = EventType.Mouse
+                    GenericType = EventType.Mouse,
+                     Delta = e.Delta,
+                    Button = MouseButton.None
                 };
+
+                if (e.Button == MouseButtons.Left)
+                    msg.Button = MouseButton.Left;
+                if (e.Button == MouseButtons.Right)
+                    msg.Button = MouseButton.Right;
+                if (e.Button == MouseButtons.Middle)
+                    msg.Button = MouseButton.Middle;
                 posX = e.X;
                 posY = e.Y;
 
@@ -231,11 +249,20 @@ namespace TestClient
         {
             MouseMessage msg = new MouseMessage
             {
-                Type = MouseEventType.LButtonUp,
+                Type = MouseEventType.ButtonUp,
                 X = e.X,
                 Y = e.Y,
-                GenericType = EventType.Mouse
+                GenericType = EventType.Mouse,
+                Button = MouseButton.None
             };
+
+            if (e.Button == MouseButtons.Left)
+                msg.Button = MouseButton.Left;
+            if (e.Button == MouseButtons.Right)
+                msg.Button = MouseButton.Right;
+            if (e.Button == MouseButtons.Middle)
+                msg.Button = MouseButton.Middle;
+
 
             SendMouseEvent(msg);
         }
