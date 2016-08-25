@@ -26,12 +26,7 @@ namespace SharedPluginServer
 
         private static bool _initialized = false;
 
-        public delegate void LoadFinished(int StatusCode);
-
-        public event LoadFinished OnLoadFinished;
-
-        //render
-       // Dispatcher _mainUiDispatcher;
+       
 
         // public static CefMessageRouterBrowserSide BrowserMessageRouter { get; private set; }
 
@@ -161,10 +156,7 @@ namespace SharedPluginServer
 
         #endregion
 
-        private void _client_OnLoadFinished(int StatusCode)
-        {
-            OnLoadFinished?.Invoke(StatusCode);
-        }
+        
 
         public byte[] GetBitmap()
         {
@@ -202,11 +194,25 @@ namespace SharedPluginServer
             _client.MouseMoveEvent(x, y);
         }
 
-        public void CharEvent(int character,KeyboardEventType type)
+        public void KeyboardEvent(int character,KeyboardEventType type)
         {
-            _client.KeyboardCharEvent(character,type);
+            _client.KeyboardEvent(character,type);
         }
 
+        public void FocusEvent(int focus)
+        {
+            _client.FocusEvent(focus);
+        }
+
+        public void MouseLeaveEvent()
+        {
+            _client.MouseLeaveEvent();
+        }
+
+        public void MouseWheelEvent(int x, int y, int delta)
+        {
+            _client.MouseWheelEvent(x,y,delta);
+        }
         
     }
 }

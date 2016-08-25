@@ -33,10 +33,10 @@ namespace SharedPluginServer
 
             _mainWorker.SetMemServer(_memServer);
 
-            SocketServer.OnReceivedMessage += HandleMouse;
+            SocketServer.OnReceivedMessage += HandleMessage;
         }
 
-        public void HandleMouse(EventPacket msg)
+        public void HandleMessage(EventPacket msg)
         {
           //  log.Info("________Packet:" + msg.Type);
 
@@ -54,7 +54,7 @@ namespace SharedPluginServer
                                 try
                                 {
                                     log.Info("==============SHUTTING DOWN==========");
-                                    SocketServer.OnReceivedMessage -= HandleMouse;
+                                    SocketServer.OnReceivedMessage -= HandleMessage;
                                        _mainWorker.Shutdown();
                                     //log.Info("___MAIN");
                                      _memServer.Dispose();
@@ -83,9 +83,11 @@ namespace SharedPluginServer
                         KeyboardEvent keyboardEvent=msg.Event as KeyboardEvent;
                     if (keyboardEvent != null)
                     {
-                     
-                                    _mainWorker.CharEvent(keyboardEvent.Key,keyboardEvent.Type);
-                         
+                        if (keyboardEvent.Type != KeyboardEventType.Focus)
+                            _mainWorker.KeyboardEvent(keyboardEvent.Key, keyboardEvent.Type);
+                        else
+                            _mainWorker.FocusEvent(keyboardEvent.Key);
+
                     }
                     break;
                 }
@@ -105,6 +107,12 @@ namespace SharedPluginServer
                                 case MouseEventType.Move:
                                     _mainWorker.MouseMoveEvent(mouseMessage.X, mouseMessage.Y);
                                     break;
+                                    case MouseEventType.Leave:
+                                    _mainWorker.MouseLeaveEvent();
+                                    break;
+                                    case MouseEventType.Wheel:
+                                    _mainWorker.MouseWheelEvent(mouseMessage.X,mouseMessage.Y,mouseMessage.Delta);
+                                    break;
                             }
                         }
 
@@ -115,10 +123,7 @@ namespace SharedPluginServer
            
         }
 
-        ~App()
-        {
-            //_mainWorker.Shutdown();
-        }
+     
     }
 
     
@@ -136,7 +141,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         static void Main()
         {
 
-            //log4net.Config.XmlConfigurator.Configure();
+            
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -198,13 +203,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             SharedMemServer _server=new SharedMemServer();
             _server.Init(1);
 
-           // NamedPipeServer.PipeName = "MainCommChannel";
-           // ThreadStart pipeStart=new ThreadStart(NamedPipeServer.CreatePipeServer);
-
-           /* Thread listenerThread=new Thread(pipeStart);
-            listenerThread.SetApartmentState(ApartmentState.STA);
-            listenerThread.IsBackground = true;
-            listenerThread.Start();*/
+           
             SocketServer ssrv=new SocketServer();
             ssrv.Init();
 

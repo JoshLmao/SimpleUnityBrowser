@@ -103,10 +103,11 @@ namespace SharedPluginServer
             _lifespanHandler.MainBrowser.GetMainFrame().LoadUrl(url);
         }
 
+        #region Events
         public void MouseEvent(int x,int y,bool updown)
         {
             //_lifespanHandler.MainBrowserHost.SendFocusEvent(true);
-            _lifespanHandler.MainBrowser.GetHost().SendFocusEvent(true);
+            //_lifespanHandler.MainBrowser.GetHost().SendFocusEvent(true);
             CefMouseEvent mouseEvent = new CefMouseEvent()
             {
                 X =x,
@@ -130,11 +131,10 @@ namespace SharedPluginServer
             _lifespanHandler.MainBrowser.GetHost().SendMouseMoveEvent(mouseEvent,false);
         }
 
-        public void KeyboardCharEvent(int character,KeyboardEventType type)
+        public void KeyboardEvent(int character,KeyboardEventType type)
         {
             CefKeyEvent keyEvent = new CefKeyEvent()
             {
-                //Character = character,
                 EventType = CefKeyEventType.Char,
                 WindowsKeyCode = character
             };
@@ -146,6 +146,37 @@ namespace SharedPluginServer
             _lifespanHandler.MainBrowser.GetHost().SendKeyEvent(keyEvent);
         }
 
+        public void FocusEvent(int focus)
+        {
+
+            if (focus == 0)
+                _lifespanHandler.MainBrowser.GetHost().SendFocusEvent(false);
+            else
+            _lifespanHandler.MainBrowser.GetHost().SendFocusEvent(true);
+        }
+
+        public void MouseLeaveEvent()
+        {
+            CefMouseEvent mouseEvent = new CefMouseEvent()
+            {
+                X = 0,
+                Y = 0
+            };
+            _lifespanHandler.MainBrowser.GetHost().SendMouseMoveEvent(mouseEvent, false);
+
+        }
+
+        public void MouseWheelEvent(int x, int y, int delta)
+        {
+            CefMouseEvent mouseEvent = new CefMouseEvent()
+            {
+                X = x,
+                Y = y
+            };
+            _lifespanHandler.MainBrowser.GetHost().SendMouseWheelEvent(mouseEvent,0,delta);
+        }
+
+#endregion
         public void Shutdown()
         {
             _lifespanHandler.MainBrowser.GetHost().CloseBrowser();

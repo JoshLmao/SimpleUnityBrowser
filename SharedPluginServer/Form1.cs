@@ -129,7 +129,7 @@ namespace SharedPluginServer
              pictureBox1.Image = bmp;
 
             // InitBuffer();
-            _mainWorker.OnLoadFinished += _mainWorker_OnLoadFinished;
+           
            _mainWorker.Navigate("http://www.google.com");
             //Thread controlThread = new Thread(ControlPipeServer);
             //controlThread.Start();

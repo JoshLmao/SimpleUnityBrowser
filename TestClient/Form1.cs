@@ -49,7 +49,7 @@ namespace TestClient
         public Form1()
         {
             InitializeComponent();
-
+            this.pictureBox1.MouseWheel += PictureBox1_MouseWheel;
 
             //Connect
             IPAddress ip = IPAddress.Parse("127.0.0.1");
@@ -61,6 +61,8 @@ namespace TestClient
             /// _sendEvents=new Queue<MouseMessage>();
             Application.Idle += Application_Idle;
         }
+
+       
 
         private void Application_Idle(object sender, EventArgs e)
         {
@@ -191,6 +193,20 @@ namespace TestClient
             SendMouseEvent(msg);
         }
 
+        private void PictureBox1_MouseWheel(object sender, MouseEventArgs e)
+        {
+            //pictureBox1.Focus();
+            MouseMessage msg = new MouseMessage
+            {
+                Type = MouseEventType.Wheel,
+                X = e.X,
+                Y = e.Y,
+                Delta = e.Delta,
+                GenericType = EventType.Mouse
+            };
+            SendMouseEvent(msg);
+        }
+
         //really spammy
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
@@ -263,6 +279,26 @@ namespace TestClient
         {
             SendCharEvent((int)e.KeyValue, KeyboardEventType.Up);
         }
+
+        private void pictureBox1_MouseLeave(object sender, EventArgs e)
+        {
+            MouseMessage msg = new MouseMessage
+            {
+                Type = MouseEventType.Leave,
+                X = 0,
+                Y = 0,
+                GenericType = EventType.Mouse
+            };
+
+            SendMouseEvent(msg);
+        }
+
+        private void pictureBox1_MouseHover(object sender, EventArgs e)
+        {
+            pictureBox1.Focus();
+        }
+
+        //protected override void OnMouseWheel()
     }
 
 

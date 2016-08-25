@@ -10,7 +10,8 @@ namespace MessageLibrary
     {
         CharKey=0,
         Down=1,
-        Up=2
+        Up=2,
+        Focus=3
     
     }
 

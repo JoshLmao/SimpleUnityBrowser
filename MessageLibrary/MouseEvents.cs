@@ -12,6 +12,8 @@ namespace MessageLibrary
         LButtonDown = 0,
         LButtonUp = 1,
         Move = 2,
+        Leave=3,
+        Wheel=4,
 
     }
 
@@ -20,6 +22,7 @@ namespace MessageLibrary
     {
         public int X { get; set; }
         public int Y { get; set; }
+        public int Delta { get; set; }
         public MouseEventType Type { get; set; }
 
         public static bool operator ==(MouseMessage m1, MouseMessage m2)
@@ -49,6 +52,7 @@ namespace MessageLibrary
                 hash = hash * 23 + X.GetHashCode();
                 hash = hash * 23 + Y.GetHashCode();
                 hash = hash * 23 + Type.GetHashCode();
+                hash = hash * 23 + Delta.GetHashCode();
                 return hash;
             }
         }
