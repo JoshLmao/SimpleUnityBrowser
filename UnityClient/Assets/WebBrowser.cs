@@ -12,43 +12,38 @@ using MessageLibrary;
 
 public class WebBrowser : MonoBehaviour
 {
-    private Socket _clientSocket;
+   
 
-    private SharedArray<byte> _mainTexArray;
-
-    public Texture2D BrowserTexture;
+    
 
     private Material _mainMaterial;
 
-    private const int kWidth = 512;
-    private const int kHeight = 512;
+    
 
-    public bool Initialized=false;
 
-    private static System.Object sPixelLock;
 
-    private System.Diagnostics.Process _pluginProcess;
+    private BrowserEngine _mainEngine;
+
+    
 
     private bool _focused = false;
-    private long _arraySize = 0;
-
-    private byte[] _bufferBytes = null;
+    
 
     private int posX = 0;
     private int posY = 0;
 
     void Awake()
     {
-        BrowserTexture = new Texture2D(kWidth, kHeight, TextureFormat.RGBA32, false);
-        sPixelLock = new object();
-        InitPlugin();
+        _mainEngine=new BrowserEngine();
+       
+        _mainEngine.InitPlugin();
     }
 
     // Use this for initialization
     void Start ()
     {
         _mainMaterial = GetComponent<MeshRenderer>().material;
-        _mainMaterial.SetTexture("_MainTex",BrowserTexture);
+        _mainMaterial.SetTexture("_MainTex",_mainEngine.BrowserTexture);
         _mainMaterial.SetTextureScale("_MainTex", new Vector2(-1, 1));
     }
 
@@ -67,7 +62,7 @@ public class WebBrowser : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (Initialized)
+        if (_mainEngine.Initialized)
         {
             RaycastHit hit;
             if (
@@ -98,14 +93,14 @@ public class WebBrowser : MonoBehaviour
             if (Input.GetMouseButtonDown(2))
                 msg.Button = MouseButton.Left;
 
-            SendMouseEvent(msg);
+            _mainEngine.SendMouseEvent(msg);
         }
 
     }
 
     void OnMouseUp()
     {
-        if (Initialized)
+        if (_mainEngine.Initialized)
         {
             RaycastHit hit;
             if (
@@ -136,13 +131,13 @@ public class WebBrowser : MonoBehaviour
             if (Input.GetMouseButtonUp(1))
                 msg.Button = MouseButton.Middle;
 
-            SendMouseEvent(msg);
+            _mainEngine.SendMouseEvent(msg);
         }
     }
 
     void OnMouseOver()
     {
-        if (Initialized)
+        if (_mainEngine.Initialized)
         {
             RaycastHit hit;
             if (
@@ -184,7 +179,7 @@ public class WebBrowser : MonoBehaviour
                 if (Input.GetMouseButton(1))
                     msg.Button = MouseButton.Middle;
 
-                SendMouseEvent(msg);
+                _mainEngine.SendMouseEvent(msg);
             }
 
             if (posX != px || posY != py)
@@ -208,101 +203,50 @@ public class WebBrowser : MonoBehaviour
 
                 posX = px;
                 posY = py;
-                SendMouseEvent(msg);
+                _mainEngine.SendMouseEvent(msg);
             }
         }
 
         // Debug.Log(pixelUV);
   }
 
-    public void InitPlugin()
-    {
-        string args = "512 512";
-        _pluginProcess = new System.Diagnostics.Process()
-        {
-            StartInfo = new System.Diagnostics.ProcessStartInfo()
-            {
-                WorkingDirectory =
-                    @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug",
-                FileName =
-                    @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
-                Arguments = args
-
-            }
-        };
-
-       
-       
-        _pluginProcess.Start();
-       
-    }
+    
 	
 	// Update is called once per frame
 	void Update ()
     {
-	    if (Initialized)
-	    {
-	        //try
-	       // {
-                
-	            
-	                if (_bufferBytes == null)
-	                {
-                    long arraySize = _mainTexArray.Length;
-                    Debug.Log(arraySize);
-	                    _bufferBytes = new byte[arraySize];
-	                }
-	                _mainTexArray.CopyTo(_bufferBytes, 0);
-	                //_mainTexArray.
-	                lock (sPixelLock)
-	                {
-	                    BrowserTexture.LoadRawTextureData(_bufferBytes);
-	                    BrowserTexture.Apply();
-	                }
-	            
-	       // }
-	       // catch (Exception ex)
-	       // {
-	       //   Debug.Log("Exception:"+ex.Message+";"+ex.StackTrace+";");  
-	          
-	       // }
-	       
-	    }
-	    else
-	    {
-            foreach (System.Diagnostics.Process clsProcess in System.Diagnostics.Process.GetProcesses())
-                if (clsProcess.ProcessName == _pluginProcess.ProcessName)
-                {
-                    Thread.Sleep(100); //give some time to initialize
-                    try
-                    {
-                        _mainTexArray = new SharedArray<byte>("MainSharedMem");
-                        //Connect
-                        IPAddress ip = IPAddress.Parse("127.0.0.1");
-                        _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                        _clientSocket.Connect(new IPEndPoint(ip, 8885));
-                        Initialized = true;
-                    }
-                    catch (Exception)
-                    {
-                        
-                       // throw;
-                    }
-                     
 
-                   
-                }
-        }
-
+        _mainEngine.UpdateTexture();
     }
 
     void OnDisable()
     {
-        SendShutdownEvent();
-        _clientSocket.Close();
+       _mainEngine.Shutdown();
     }
 
-    #region Internals
+    
+}
+
+public class BrowserEngine
+{
+    private Socket _clientSocket;
+
+    private SharedArray<byte> _mainTexArray;
+
+    private System.Diagnostics.Process _pluginProcess;
+
+    private static System.Object sPixelLock;
+
+    public Texture2D BrowserTexture;
+    public bool Initialized = false;
+
+    private long _arraySize = 0;
+
+    public const int kWidth = 512;
+    public const int kHeight = 512;
+
+    private byte[] _bufferBytes = null;
+
     public void SendShutdownEvent()
     {
         GenericEvent ge = new GenericEvent()
@@ -344,5 +288,84 @@ public class WebBrowser : MonoBehaviour
         //  MessageBox.Show(_sendEvents.Count.ToString());
     }
 
-    #endregion
+    public void InitPlugin()
+    {
+        BrowserTexture = new Texture2D(kWidth, kHeight, TextureFormat.RGBA32, false);
+        sPixelLock = new object();
+        string args = "512 512";
+        _pluginProcess = new System.Diagnostics.Process()
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo()
+            {
+                WorkingDirectory =
+                    @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug",
+                FileName =
+                    @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
+                Arguments = args
+
+            }
+        };
+
+
+
+        _pluginProcess.Start();
+
+
+    }
+
+    public void UpdateTexture()
+    {
+        if (Initialized)
+        {
+
+
+            if (_bufferBytes == null)
+            {
+                long arraySize = _mainTexArray.Length;
+                Debug.Log(arraySize);
+                _bufferBytes = new byte[arraySize];
+            }
+            _mainTexArray.CopyTo(_bufferBytes, 0);
+
+            lock (sPixelLock)
+            {
+                BrowserTexture.LoadRawTextureData(_bufferBytes);
+                BrowserTexture.Apply();
+            }
+
+
+
+        }
+        else
+        {
+            foreach (System.Diagnostics.Process clsProcess in System.Diagnostics.Process.GetProcesses())
+                if (clsProcess.ProcessName == _pluginProcess.ProcessName)
+                {
+                    Thread.Sleep(100); //give some time to initialize
+                    try
+                    {
+                        _mainTexArray = new SharedArray<byte>("MainSharedMem");
+                        //Connect
+                        IPAddress ip = IPAddress.Parse("127.0.0.1");
+                        _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        _clientSocket.Connect(new IPEndPoint(ip, 8885));
+                        Initialized = true;
+                    }
+                    catch (Exception)
+                    {
+
+                        // throw;
+                    }
+
+
+
+                }
+        }
+    }
+
+    public void Shutdown()
+    {
+        SendShutdownEvent();
+        _clientSocket.Close();
+    }
 }
