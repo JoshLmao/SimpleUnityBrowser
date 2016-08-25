@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace TestClient
 
         //  private Queue<MouseMessage> _sendEvents; 
 
-       SharedArray<byte> arr = new SharedArray<byte>("MainSharedMem");
+        private SharedArray<byte> arr; //= new SharedArray<byte>("MainSharedMem");
 
         private Bitmap _texture;
 
@@ -51,14 +52,44 @@ namespace TestClient
             InitializeComponent();
             this.pictureBox1.MouseWheel += PictureBox1_MouseWheel;
 
+           Init();
+        }
+
+        public void Init()
+        {
+            Process pluginProcess = new Process()
+            {
+                StartInfo = new ProcessStartInfo()
+                {
+                    WorkingDirectory =
+                        @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug",
+                    FileName =
+                        @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe"
+                }
+            };
+            pluginProcess.Start();
+            //Thread.Sleep(10000);
+            // while (!Process.GetProcesses().Any(p => p.Name == myName)) { Thread.Sleep(100); }
+
+            bool found_proc = false;
+            while (!found_proc)
+            {
+                foreach (Process clsProcess in Process.GetProcesses())
+                    if (clsProcess.ProcessName == pluginProcess.ProcessName)
+                        found_proc = true;
+
+                Thread.Sleep(1000);
+            }
+
+            arr = new SharedArray<byte>("MainSharedMem");
+
             //Connect
             IPAddress ip = IPAddress.Parse("127.0.0.1");
             clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             clientSocket.Connect(new IPEndPoint(ip, 8885));
 
             _texture = new Bitmap(BMWidth, BMHeight);
-           
-            /// _sendEvents=new Queue<MouseMessage>();
+
             Application.Idle += Application_Idle;
         }
 
