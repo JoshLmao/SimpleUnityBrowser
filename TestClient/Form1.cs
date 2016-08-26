@@ -69,11 +69,11 @@ namespace TestClient
 
             memfile = memid.ToString();
             args = args + memfile + " ";
-         /*  Random r=new Random();
+          Random r=new Random();
             port = 8880 + r.Next(10);
 
          
-            args = args + port.ToString();*/
+            args = args + port.ToString();
 
             //MessageBox.Show(args);
 

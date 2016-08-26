@@ -18,15 +18,95 @@ public class BrowserEngine
 
     private static System.Object sPixelLock;
 
-    public Texture2D BrowserTexture;
+    public Texture2D BrowserTexture=null;
     public bool Initialized = false;
 
-    private long _arraySize = 0;
+   
 
-    public const int kWidth = 512;
-    public const int kHeight = 512;
+    
 
     private byte[] _bufferBytes = null;
+    private long _arraySize = 0;
+
+    #region Settings
+    public int kWidth = 512;
+    public int kHeight = 512;
+    private string _sharedFileName;
+    private int _port;
+    private string _initialURL;
+    #endregion
+
+
+
+    #region Init
+    public void InitPlugin(int width,int height, string sharedfilename,int port,string initialURL)
+    {
+        kWidth = width;
+        kHeight = height;
+        _sharedFileName = sharedfilename;
+        _port = port;
+        _initialURL = initialURL;
+
+        if(BrowserTexture==null)
+        BrowserTexture = new Texture2D(kWidth, kHeight, TextureFormat.BGRA32, false);
+        sPixelLock = new object();
+
+
+        string args = BuildParamsString();
+        _pluginProcess = new System.Diagnostics.Process()
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo()
+            {
+                WorkingDirectory =
+                    @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug",
+                FileName =
+                    @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
+                Arguments = args
+
+            }
+        };
+
+
+
+        _pluginProcess.Start();
+
+
+    }
+
+    private string BuildParamsString()
+    {
+        string ret = kWidth.ToString() + " " + kHeight.ToString() + " ";
+        ret = ret + _initialURL + " ";
+        ret = ret + _sharedFileName + " ";
+        ret = ret + _port.ToString();
+        return ret;
+    }
+
+    #endregion
+
+    #region SendEvents
+
+    public void SendNavigateEvent(string url)
+    {
+        GenericEvent ge = new GenericEvent()
+        {
+            Type = GenericEventType.Navigate,
+            GenericType = MessageLibrary.EventType.Generic,
+            NavigateUrl = url
+        };
+
+        EventPacket ep = new EventPacket()
+        {
+            Event = ge,
+            Type = MessageLibrary.EventType.Generic
+        };
+
+        MemoryStream mstr = new MemoryStream();
+        BinaryFormatter bf = new BinaryFormatter();
+        bf.Serialize(mstr, ep);
+        byte[] b = mstr.GetBuffer();
+        _clientSocket.Send(b);
+    }
 
     public void SendShutdownEvent()
     {
@@ -73,9 +153,7 @@ public class BrowserEngine
 
     public void SendMouseEvent(MouseMessage msg)
     {
-        // if (_MouseDone)
-        //_controlMem.Write(ref msg,0);
-        // _MouseDone = false;
+       
         EventPacket ep = new EventPacket
         {
             Event = msg,
@@ -87,33 +165,12 @@ public class BrowserEngine
         bf.Serialize(mstr, ep);
         byte[] b = mstr.GetBuffer();
         _clientSocket.Send(b);
-        //  MessageBox.Show(_sendEvents.Count.ToString());
+       
     }
 
-    public void InitPlugin()
-    {
-        BrowserTexture = new Texture2D(kWidth, kHeight, TextureFormat.RGBA32, false);
-        sPixelLock = new object();
-        string args = "512 512";
-        _pluginProcess = new System.Diagnostics.Process()
-        {
-            StartInfo = new System.Diagnostics.ProcessStartInfo()
-            {
-                WorkingDirectory =
-                    @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug",
-                FileName =
-                    @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
-                Arguments = args
+    #endregion
 
-            }
-        };
-
-
-
-        _pluginProcess.Start();
-
-
-    }
+    
 
     public void UpdateTexture()
     {
@@ -146,14 +203,14 @@ public class BrowserEngine
                 foreach (System.Diagnostics.Process clsProcess in System.Diagnostics.Process.GetProcesses())
                     if (clsProcess.ProcessName == processName) 
                     {
-                        Thread.Sleep(100); //give it some time to initialize
+                        Thread.Sleep(200); //give it some time to initialize
                         try
                         {
-                            _mainTexArray = new SharedArray<byte>("MainSharedMem");
+                            _mainTexArray = new SharedArray<byte>(_sharedFileName);
                             //Connect
                             IPAddress ip = IPAddress.Parse("127.0.0.1");
                             _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                            _clientSocket.Connect(new IPEndPoint(ip, 8885));
+                            _clientSocket.Connect(new IPEndPoint(ip, _port));
                             Initialized = true;
                         }
                         catch (Exception)

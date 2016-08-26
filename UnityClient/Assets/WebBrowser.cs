@@ -1,13 +1,39 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
 //using System.Diagnostics;
 using MessageLibrary;
+using UnityEngine.UI;
 
 public class WebBrowser : MonoBehaviour
 {
-   
 
-    
+    #region General
+
+    [Header("General settings")]
+    public int Width = 1024;
+
+    public int Height = 768;
+
+    public string MemoryFile = "MainSharedMem";
+
+    public bool RandomMemoryFile;
+
+    [Range(8000f,9000f)]
+    public int Port=8885;
+
+    public bool RandomPort;
+
+    public string InitialURL = "http://www.google.com";
+
+   
+    #endregion
+
+
+    [Header("UI settings")]
+    public BrowserUI mainUIPanel;
+
+    public bool KeepUIVisible = false;
 
     private Material _mainMaterial;
 
@@ -30,8 +56,19 @@ public class WebBrowser : MonoBehaviour
     void Awake()
     {
         _mainEngine=new BrowserEngine();
+
+        if (RandomMemoryFile)
+        {
+            Guid memid = Guid.NewGuid();
+            MemoryFile = memid.ToString();
+        }
+        if (RandomPort)
+        {
+            System.Random r = new System.Random();
+            Port = 8880 + r.Next(10);
+        }
        
-        _mainEngine.InitPlugin();
+        _mainEngine.InitPlugin(Width,Height,MemoryFile,Port,InitialURL);
     }
 
     // Use this for initialization
@@ -41,19 +78,39 @@ public class WebBrowser : MonoBehaviour
         _mainMaterial.SetTexture("_MainTex",_mainEngine.BrowserTexture);
         _mainMaterial.SetTextureScale("_MainTex", new Vector2(-1, 1));
         _mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
+        mainUIPanel.MainCanvas.worldCamera = _mainCamera;
+       // _mainInput = MainUrlInput.GetComponent<Input>();
+        mainUIPanel.KeepUIVisible = KeepUIVisible;
+        if(!KeepUIVisible)
+            mainUIPanel.Hide();
     }
 
+    #region UI
+
+    public void OnNavigate()
+    {
+       // MainUrlInput.isFocused
+        _mainEngine.SendNavigateEvent(mainUIPanel.UrlField.text);
+    }
+    #endregion
+
+
+    #region Events
     void OnMouseEnter()
     {
       //  if (!_focused)
        // {
             _focused = true;
         //}
+        Debug.Log("________ENTER");
+      mainUIPanel.Show();
     }
 
-    void OnMouseLeave()
+    void OnMouseExit()
     {
+        Debug.Log("________Leave");
         _focused = false;
+        mainUIPanel.Hide();
     }
 
     void OnMouseDown()
@@ -72,23 +129,7 @@ public class WebBrowser : MonoBehaviour
 
     }
 
-    private Vector2 GetScreenCoords()
-    {
-        RaycastHit hit;
-        if (
-            !Physics.Raycast(
-                _mainCamera.ScreenPointToRay(Input.mousePosition), out hit))
-            return new Vector2(-1f,-1f);
-        Texture tex = _mainMaterial.mainTexture;
-       
-
-       Vector2 pixelUV = hit.textureCoord;
-        pixelUV.x = (1 - pixelUV.x)*tex.width;
-        pixelUV.y *= tex.height;
-
-       
-        return pixelUV;
-    }
+    
 
 
     void OnMouseUp()
@@ -156,6 +197,27 @@ public class WebBrowser : MonoBehaviour
         // Debug.Log(pixelUV);
   }
 
+    #endregion
+    #region Helpers
+
+    private Vector2 GetScreenCoords()
+    {
+        RaycastHit hit;
+        if (
+            !Physics.Raycast(
+                _mainCamera.ScreenPointToRay(Input.mousePosition), out hit))
+            return new Vector2(-1f, -1f);
+        Texture tex = _mainMaterial.mainTexture;
+
+
+        Vector2 pixelUV = hit.textureCoord;
+        pixelUV.x = (1 - pixelUV.x) * tex.width;
+        pixelUV.y *= tex.height;
+
+
+        return pixelUV;
+    }
+
     private void SendMouseButtonEvent(int x,int y,MouseButton btn,MouseEventType type)
     {
         MouseMessage msg = new MouseMessage
@@ -200,15 +262,15 @@ public class WebBrowser : MonoBehaviour
             _mainEngine.SendMouseEvent(msg);
         }
     }
-
+    #endregion
 
     // Update is called once per frame
-	void Update ()
+    void Update ()
     {
 
         _mainEngine.UpdateTexture();
 
-	    if (_focused) //keys
+	    if (_focused&&!mainUIPanel.UrlField.isFocused) //keys
 	    {
 	        foreach (char c in Input.inputString)
 	        {
