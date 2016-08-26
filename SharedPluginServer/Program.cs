@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -25,6 +27,8 @@ namespace SharedPluginServer
 
         private CefWorker _mainWorker;
 
+        private System.Windows.Forms.Timer _pingTimer;
+
         public App(CefWorker worker, SharedMemServer memServer, SocketServer commServer)
         {
             _memServer = memServer;
@@ -33,14 +37,73 @@ namespace SharedPluginServer
 
             _mainWorker.SetMemServer(_memServer);
 
+            /*_pingTimer=new System.Windows.Forms.Timer();
+
+            _pingTimer.Tick += _pingTimer_Tick;
+            _pingTimer.Interval = 5000;
+            _pingTimer.Start();*/
+
+            _mainWorker.OnJSDialog += _mainWorker_OnJSDialog;
+
             SocketServer.OnReceivedMessage += HandleMessage;
         }
+
+        private void _mainWorker_OnJSDialog(string message, string prompt, DialogEventType type)
+        {
+            DialogEvent msg = new DialogEvent()
+            {
+                DefaultPrompt = prompt,
+                Message = message,
+                Type = type,
+                GenericType = EventType.Dialog
+            };
+
+            EventPacket ep = new EventPacket
+            {
+                Event = msg,
+                Type = EventType.Dialog
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+
+            _controlServer.Client.SendData(mstr.GetBuffer());
+        }
+
+        /* private void _pingTimer_Tick(object sender, EventArgs e)
+         {
+             byte[] reply = _controlServer.Client.SendPing();
+             //log.Info("________PING ret:"+reply.Length);
+             try
+             {
+                 MemoryStream mstr = new MemoryStream(reply);
+                 BinaryFormatter bf = new BinaryFormatter();
+                 EventPacket ep = bf.Deserialize(mstr) as EventPacket;
+                 log.Info("________PING ret:" + ep.Type);
+                 //GenericEvent genericEvent = ep.Event as GenericEvent;
+
+
+             }
+             catch (Exception)
+             {
+                 log.Info("_______ERROR");
+
+             }
+         }*/
 
         public void HandleMessage(EventPacket msg)
         {
           
             switch (msg.Type)
             {
+                case EventType.Ping:
+                {
+                        //_controlServer.Client.SendPing();
+                        // _pingTimer.
+                        break;
+                }
+
                 case EventType.Generic:
                 {
                     GenericEvent genericEvent=msg.Event as GenericEvent;
@@ -80,9 +143,22 @@ namespace SharedPluginServer
                                 case GenericEventType.ExecuteJS:
                                     _mainWorker.ExecuteJavaScript(genericEvent.JsCode);
                                 break;
+
+                               
                         }
                     }
                     break;
+                }
+
+                case EventType.Dialog:
+                {
+                        DialogEvent de=msg.Event as DialogEvent;
+                    if (de != null)
+                    {
+                        _mainWorker.ContinueDialog(de.success,de.input);
+                    }
+                    break;
+                    
                 }
 
                 case EventType.Keyboard:
@@ -220,7 +296,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
             int defWidth = 1280;
             int defHeight = 720;
-            string defUrl = "http://www.yandex.ru";
+            string defUrl = "https://learn.javascript.ru/uibasic";
             string defFileName = "MainSharedMem";
             int defPort = 8885;
             //log.Info("ARGS:" + args.Length);

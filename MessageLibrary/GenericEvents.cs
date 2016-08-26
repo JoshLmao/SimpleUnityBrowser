@@ -7,9 +7,11 @@ namespace MessageLibrary
 
     public enum EventType
     {
+        Ping=-1,
         Generic=0,
         Mouse=1,
-        Keyboard=2
+        Keyboard=2,
+        Dialog = 3
     }
 
     [Serializable]
@@ -31,7 +33,10 @@ namespace MessageLibrary
         Shutdown=0,
         Navigate=1,
         ExecuteJS=2,
+        
     }
+
+   
 
     [Serializable]
     public class GenericEvent : AbstractEvent

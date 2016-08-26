@@ -2,11 +2,11 @@ using Xilium.CefGlue;
 
 namespace SharedPluginServer
 {
-    class WorkerWebRequestHandler : CefRequestHandler
+    class WorkerCefWebRequestHandler : CefRequestHandler
     {
         private readonly CefWorker _mainWorker;
 
-        public WorkerWebRequestHandler(CefWorker mainCefWorker)
+        public WorkerCefWebRequestHandler(CefWorker mainCefWorker)
         {
             _mainWorker = mainCefWorker;
         }

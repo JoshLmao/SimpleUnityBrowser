@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections;
+using System.Text;
 //using System.Diagnostics;
 using MessageLibrary;
 using UnityEngine.UI;
@@ -34,6 +35,22 @@ public class WebBrowser : MonoBehaviour
     public BrowserUI mainUIPanel;
 
     public bool KeepUIVisible = false;
+
+    [Header("Dialog settings")]
+    public Canvas DialogCanvas;
+
+    public Text DialogText;
+    public Button OkButton;
+    public Button YesButton;
+    public Button NoButton;
+    public InputField DialogPrompt;
+
+    //dialog states - threading
+    private bool _showDialog = false;
+    private string _dialogMessage = "";
+    private string _dialogPrompt = "";
+    private DialogEventType _dialogEventType;
+
 
     private Material _mainMaterial;
 
@@ -83,6 +100,62 @@ public class WebBrowser : MonoBehaviour
         mainUIPanel.KeepUIVisible = KeepUIVisible;
         if(!KeepUIVisible)
             mainUIPanel.Hide();
+
+        //attach dialogs
+        _mainEngine.OnJavaScriptDialog += _mainEngine_OnJavaScriptDialog;
+        DialogCanvas.worldCamera= _mainCamera;
+        DialogCanvas.gameObject.SetActive(false);
+    }
+
+    private void _mainEngine_OnJavaScriptDialog(string message, string prompt, DialogEventType type)
+    {
+        _showDialog = true;
+        _dialogEventType = type;
+        _dialogMessage = message;
+        _dialogPrompt = prompt;
+
+    }
+
+    private void ShowDialog()
+    {
+
+        switch (_dialogEventType)
+        {
+            case DialogEventType.Alert:
+                {
+                    DialogCanvas.gameObject.SetActive(true);
+                    OkButton.gameObject.SetActive(true);
+                    YesButton.gameObject.SetActive(false);
+                    NoButton.gameObject.SetActive(false);
+                    DialogPrompt.text = "";
+                    DialogPrompt.gameObject.SetActive(false);
+                    DialogText.text = _dialogMessage;
+                    break;
+                }
+            case DialogEventType.Confirm:
+                {
+                    DialogCanvas.gameObject.SetActive(true);
+                    OkButton.gameObject.SetActive(false);
+                    YesButton.gameObject.SetActive(true);
+                    NoButton.gameObject.SetActive(true);
+                    DialogPrompt.text = "";
+                    DialogPrompt.gameObject.SetActive(false);
+                    DialogText.text = _dialogMessage;
+                    break;
+                }
+            case DialogEventType.Prompt:
+            {
+                    DialogCanvas.gameObject.SetActive(true);
+                    OkButton.gameObject.SetActive(false);
+                    YesButton.gameObject.SetActive(true);
+                    NoButton.gameObject.SetActive(true);
+                    DialogPrompt.text = _dialogPrompt;
+                    DialogPrompt.gameObject.SetActive(true);
+                    DialogText.text = _dialogMessage;
+                    break;
+            }
+        }
+        _showDialog = false;
     }
 
     #region UI
@@ -91,25 +164,32 @@ public class WebBrowser : MonoBehaviour
     {
        // MainUrlInput.isFocused
         _mainEngine.SendNavigateEvent(mainUIPanel.UrlField.text);
+    
     }
+    #endregion
+
+    #region Dialogs
+
+    public void DialogResult(bool result)
+    {
+        DialogCanvas.gameObject.SetActive(false);
+        _mainEngine.SendDialogResponse(result,DialogPrompt.text);
+       
+    }
+
     #endregion
 
 
     #region Events
     void OnMouseEnter()
     {
-      //  if (!_focused)
-       // {
-            _focused = true;
-        //}
-        Debug.Log("________ENTER");
-      mainUIPanel.Show();
+      _focused = true;
+        mainUIPanel.Show();
     }
 
     void OnMouseExit()
     {
-        Debug.Log("________Leave");
-        _focused = false;
+      _focused = false;
         mainUIPanel.Hide();
     }
 
@@ -270,27 +350,36 @@ public class WebBrowser : MonoBehaviour
 
         _mainEngine.UpdateTexture();
 
-	    if (_focused&&!mainUIPanel.UrlField.isFocused) //keys
-	    {
-	        foreach (char c in Input.inputString)
-	        {
-                Debug.Log(Input.inputString);
-	            
-	                _mainEngine.SendCharEvent((int) c, KeyboardEventType.CharKey);
-	           
-	            
-	        }
-	        if (Input.GetKeyDown(KeyCode.Backspace))
-	            _mainEngine.SendCharEvent(8, KeyboardEventType.Down);
-            if (Input.GetKeyUp(KeyCode.Backspace))
-                _mainEngine.SendCharEvent(8, KeyboardEventType.Up);
-            
-	        //if (Input.GetKeyUp(KeyCode.Backspace))
-             //   _mainEngine.SendCharEvent(8, KeyboardEventType.Up);
-
-
-
+        //Dialog
+        if (_showDialog)
+        {
+            ShowDialog();
         }
+        
+
+
+            if (_focused && !mainUIPanel.UrlField.isFocused) //keys
+            {
+                foreach (char c in Input.inputString)
+                {
+                    Debug.Log(Input.inputString);
+
+                    _mainEngine.SendCharEvent((int) c, KeyboardEventType.CharKey);
+
+
+                }
+                if (Input.GetKeyDown(KeyCode.Backspace))
+                    _mainEngine.SendCharEvent(8, KeyboardEventType.Down);
+                if (Input.GetKeyUp(KeyCode.Backspace))
+                    _mainEngine.SendCharEvent(8, KeyboardEventType.Up);
+
+                //if (Input.GetKeyUp(KeyCode.Backspace))
+                //   _mainEngine.SendCharEvent(8, KeyboardEventType.Up);
+
+
+
+            }
+        
     }
 
     void OnDisable()

@@ -10,7 +10,7 @@ using UnityEngine;
 
 public class BrowserEngine
 {
-    private Socket _clientSocket;
+    private TcpClient _clientSocket;
 
     private SharedArray<byte> _mainTexArray;
 
@@ -24,9 +24,13 @@ public class BrowserEngine
    
 
     
-
+    //Image buffer
     private byte[] _bufferBytes = null;
     private long _arraySize = 0;
+
+    //TCP buffer
+    const int READ_BUFFER_SIZE = 2048;
+    private byte[] readBuffer = new byte[READ_BUFFER_SIZE];
 
     #region Settings
     public int kWidth = 512;
@@ -34,6 +38,14 @@ public class BrowserEngine
     private string _sharedFileName;
     private int _port;
     private string _initialURL;
+    #endregion
+
+    #region Dialogs
+
+    public delegate void JavaScriptDialog(string message, string prompt, DialogEventType type);
+
+    public event JavaScriptDialog OnJavaScriptDialog;
+
     #endregion
 
 
@@ -84,6 +96,8 @@ public class BrowserEngine
 
     #endregion
 
+
+
     #region SendEvents
 
     public void SendNavigateEvent(string url)
@@ -105,7 +119,10 @@ public class BrowserEngine
         BinaryFormatter bf = new BinaryFormatter();
         bf.Serialize(mstr, ep);
         byte[] b = mstr.GetBuffer();
-        _clientSocket.Send(b);
+        lock (_clientSocket.GetStream())
+        {
+            _clientSocket.GetStream().Write(b, 0, b.Length);
+        }
     }
 
     public void SendShutdownEvent()
@@ -126,7 +143,38 @@ public class BrowserEngine
         BinaryFormatter bf = new BinaryFormatter();
         bf.Serialize(mstr, ep);
         byte[] b = mstr.GetBuffer();
-        _clientSocket.Send(b);
+        lock (_clientSocket.GetStream())
+        {
+            _clientSocket.GetStream().Write(b, 0, b.Length);
+        }
+
+    }
+
+    public void SendDialogResponse(bool ok,string dinput)
+    {
+        DialogEvent de = new DialogEvent()
+        {
+            GenericType = MessageLibrary.EventType.Dialog,
+            success = ok,
+            input = dinput
+        };
+
+        EventPacket ep = new EventPacket
+        {
+            Event = de,
+            Type = MessageLibrary.EventType.Dialog
+        };
+
+        MemoryStream mstr = new MemoryStream();
+        BinaryFormatter bf = new BinaryFormatter();
+        bf.Serialize(mstr, ep);
+        byte[] b = mstr.GetBuffer();
+
+        //
+        lock (_clientSocket.GetStream())
+        {
+            _clientSocket.GetStream().Write(b, 0, b.Length);
+        }
 
     }
 
@@ -148,7 +196,10 @@ public class BrowserEngine
         BinaryFormatter bf = new BinaryFormatter();
         bf.Serialize(mstr, ep);
         byte[] b = mstr.GetBuffer();
-        _clientSocket.Send(b);
+        lock (_clientSocket.GetStream())
+        {
+            _clientSocket.GetStream().Write(b, 0, b.Length);
+        }
     }
 
     public void SendMouseEvent(MouseMessage msg)
@@ -164,8 +215,11 @@ public class BrowserEngine
         BinaryFormatter bf = new BinaryFormatter();
         bf.Serialize(mstr, ep);
         byte[] b = mstr.GetBuffer();
-        _clientSocket.Send(b);
-       
+        lock (_clientSocket.GetStream())
+        {
+            _clientSocket.GetStream().Write(b, 0, b.Length);
+        }
+
     }
 
     #endregion
@@ -208,9 +262,9 @@ public class BrowserEngine
                         {
                             _mainTexArray = new SharedArray<byte>(_sharedFileName);
                             //Connect
-                            IPAddress ip = IPAddress.Parse("127.0.0.1");
-                            _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                            _clientSocket.Connect(new IPEndPoint(ip, _port));
+                            _clientSocket = new TcpClient("127.0.0.1", _port);
+                            //start listen
+                            _clientSocket.GetStream().BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
                             Initialized = true;
                         }
                         catch (Exception)
@@ -231,6 +285,49 @@ public class BrowserEngine
             
         }
     }
+
+    //Receiver
+    private void StreamReceiver(IAsyncResult ar)
+    {
+        int BytesRead;
+
+        try
+        {
+            // Ensure that no other threads try to use the stream at the same time.
+            lock (_clientSocket.GetStream())
+            {
+                // Finish asynchronous read into readBuffer and get number of bytes read.
+                BytesRead = _clientSocket.GetStream().EndRead(ar);
+            }
+            MemoryStream mstr = new MemoryStream(readBuffer);
+            BinaryFormatter bf = new BinaryFormatter();
+            EventPacket ep = bf.Deserialize(mstr) as EventPacket;
+            if (ep != null)
+            {
+                //main handlers
+                if (ep.Type == MessageLibrary.EventType.Dialog)
+                {
+                    DialogEvent dev = ep.Event as DialogEvent;
+                    if (dev != null)
+                    {
+                        if (OnJavaScriptDialog != null)
+                            OnJavaScriptDialog(dev.Message, dev.DefaultPrompt, dev.Type);
+                    }
+                }
+            }
+            lock (_clientSocket.GetStream())
+            {
+                // Start a new asynchronous read into readBuffer.
+                _clientSocket.GetStream()
+                    .BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log("Error reading from socket");
+        }
+    }
+
 
     public void Shutdown()
     {

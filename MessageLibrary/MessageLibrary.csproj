@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DialogEvents.cs" />
     <Compile Include="GenericEvents.cs" />
     <Compile Include="KeyboardEvents.cs" />
     <Compile Include="MouseEvents.cs" />

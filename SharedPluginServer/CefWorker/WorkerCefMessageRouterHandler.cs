@@ -3,7 +3,7 @@ using Xilium.CefGlue.Wrapper;
 
 namespace SharedPluginServer
 {
-    class WorkerMessageRouterHandler : CefMessageRouterBrowserSide.Handler
+    class WorkerCefMessageRouterHandler : CefMessageRouterBrowserSide.Handler
     {
         public override bool OnQuery(CefBrowser browser, CefFrame frame, long queryId, string request, bool persistent, CefMessageRouterBrowserSide.Callback callback)
         {

@@ -29,16 +29,17 @@ namespace TestClient
   log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
-       
 
+        const int READ_BUFFER_SIZE = 2048;
+        private byte[] readBuffer = new byte[READ_BUFFER_SIZE];
         //const int BMWidth = 1280;
         //const int BMHeight = 1024;
 
-       
+
         private int posX = 0;
         private int posY = 0;
 
-        private Socket clientSocket;
+        private TcpClient clientSocket;
 
         //  private Queue<MouseMessage> _sendEvents; 
 
@@ -49,6 +50,8 @@ namespace TestClient
         public string memfile= "MainSharedMem";
 
         public int port = 8885;
+
+        private bool _inModalDialog = false;
 
         public Form1()
         {
@@ -75,7 +78,7 @@ namespace TestClient
          
             args = args + port.ToString();
 
-            //MessageBox.Show(args);
+           
 
             Process pluginProcess = new Process()
             {
@@ -107,15 +110,120 @@ namespace TestClient
 
             //Connect
             IPAddress ip = IPAddress.Parse("127.0.0.1");
-            clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            clientSocket.Connect(new IPEndPoint(ip, port));
+            //clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            clientSocket=new TcpClient("127.0.0.1", port);
+
+            //clientSocket.Connect(new IPEndPoint(ip, port));
+
+            //Receive
+            this.clientSocket.GetStream().BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
 
             _texture = new Bitmap(pictureBox1.Width, pictureBox1.Width);
-
+           // int defWidth = 1280;
+           // int defHeight = 720;
+           // _texture = new Bitmap(defWidth, defHeight);
             Application.Idle += Application_Idle;
         }
 
-       
+
+        private void StreamReceiver(IAsyncResult ar)
+        {
+            int BytesRead;
+
+            try
+            {
+                // Ensure that no other threads try to use the stream at the same time.
+                lock (clientSocket.GetStream())
+                {
+                    // Finish asynchronous read into readBuffer and get number of bytes read.
+                    BytesRead = clientSocket.GetStream().EndRead(ar);
+                }
+                // Convert the byte array the message was saved into, minus one for the
+                // Chr(13).
+                // MessageBox.Show("__RECEEIVED:" + BytesRead);
+                MemoryStream mstr = new MemoryStream(readBuffer);
+                BinaryFormatter bf = new BinaryFormatter();
+                EventPacket ep = bf.Deserialize(mstr) as EventPacket;
+                if (ep != null)
+                {
+                   // if (ep.Type == EventType.Ping)
+                    //    SendPing();
+                    //  //  MessageBox.Show("PINGBACK");
+
+                    if (ep.Type == EventType.Dialog)
+                    {
+                        DialogEvent dev=ep.Event as DialogEvent;
+                        switch (dev.Type)
+                        {
+                                case DialogEventType.Alert:
+                            {
+                                _inModalDialog = true;
+                                MessageBox.Show(dev.Message, "InApp");
+                                    SendDialogResponce(true);
+                                
+                                    _inModalDialog = false;
+                                    break;
+                            }
+
+                            case DialogEventType.Confirm:
+                            {
+                                    _inModalDialog = true;
+                                if (MessageBox.Show(dev.Message, "InApp", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                                {
+                                        SendDialogResponce(true);
+                                }
+                                else
+                                {
+                                        SendDialogResponce(false);
+                                 }
+                                    _inModalDialog = false;
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                // Ensure that no other threads try to use the stream at the same time.
+                    lock (clientSocket.GetStream())
+                {
+                    // Start a new asynchronous read into readBuffer.
+                    clientSocket.GetStream()
+                        .BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
+                }
+            }
+            catch (Exception e)
+            {
+            }
+        }
+
+        public void SendDialogResponce(bool ok)
+        {
+            DialogEvent de = new DialogEvent()
+            {
+                GenericType = EventType.Dialog,
+                success = ok,
+                input = ""
+            };
+
+            EventPacket ep = new EventPacket
+            {
+                Event = de,
+                Type = EventType.Dialog
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+            byte[] b = mstr.GetBuffer();
+
+            //
+            lock (clientSocket.GetStream())
+            {
+                clientSocket.GetStream().Write(b, 0, b.Length);
+            }
+
+        }
+
 
         private void Application_Idle(object sender, EventArgs e)
         {
@@ -133,35 +241,12 @@ namespace TestClient
             _texture.UnlockBits(bmpData);
             pictureBox1.Image = _texture;
 
+            //Query message
+            //clientSocket.Receive()
+
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-
-           
-          /*  byte[] _read = new byte[arr.Length];
-
-            arr.CopyTo(_read, 0);
-
-            Bitmap bmp = new Bitmap(BMWidth, BMHeight);
-            Rectangle rect = new Rectangle(0, 0, BMWidth, BMHeight);
-            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.WriteOnly, bmp.PixelFormat);
-            IntPtr ptr = bmpData.Scan0;
-            System.Runtime.InteropServices.Marshal.Copy(_read, 0, ptr, _read.Length);
-            bmp.UnlockBits(bmpData);
-
-            pictureBox1.Image = bmp;*/
-
-            ////
-
-
-
-
-          //  using (StreamWriter sw = new StreamWriter(pipeClient))
-           // {
-           //     sw.WriteLine("TEST PIPE SEND");
-           // }
-        }
+        
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -176,17 +261,26 @@ namespace TestClient
            // if (_MouseDone)
                 //_controlMem.Write(ref msg,0);
            // _MouseDone = false;
-            EventPacket ep = new EventPacket
-            {
-                Event = msg,
-                Type = EventType.Mouse
-            };
 
-           MemoryStream mstr=new MemoryStream();
-            BinaryFormatter bf=new BinaryFormatter();
-            bf.Serialize(mstr, ep);
-            byte[] b = mstr.GetBuffer();
-            clientSocket.Send(b);
+            if (!_inModalDialog)
+            {
+                EventPacket ep = new EventPacket
+                {
+                    Event = msg,
+                    Type = EventType.Mouse
+                };
+
+                MemoryStream mstr = new MemoryStream();
+                BinaryFormatter bf = new BinaryFormatter();
+                bf.Serialize(mstr, ep);
+                byte[] b = mstr.GetBuffer();
+
+                //
+                lock (clientSocket.GetStream())
+                {
+                    clientSocket.GetStream().Write(b, 0, b.Length);
+                }
+            }
             //  MessageBox.Show(_sendEvents.Count.ToString());
         }
 
@@ -208,8 +302,39 @@ namespace TestClient
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
-            clientSocket.Send(b);
+            //
+            lock (clientSocket.GetStream())
+            {
+                clientSocket.GetStream().Write(b, 0, b.Length);
+            }
+            //  MessageBox.Show(_sendEvents.Count.ToString());
 
+        }
+
+        public void SendPing()
+        {
+            GenericEvent ge = new GenericEvent()
+            {
+                Type = GenericEventType.Navigate, //could be any
+                GenericType = EventType.Ping,
+                
+            };
+
+            EventPacket ep = new EventPacket()
+            {
+                Event = ge,
+                Type = EventType.Ping
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+            byte[] b = mstr.GetBuffer();
+            //
+            lock (clientSocket.GetStream())
+            {
+                clientSocket.GetStream().Write(b, 0, b.Length);
+            }
         }
 
         public void SendNavigateEvent(string url)
@@ -231,7 +356,12 @@ namespace TestClient
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
-            clientSocket.Send(b);
+            //
+            lock (clientSocket.GetStream())
+            {
+                clientSocket.GetStream().Write(b, 0, b.Length);
+            }
+            //  MessageBox.Show(_sendEvents.Count.ToString());
         }
 
         public void SendExecuteJSEvent(string js)
@@ -253,7 +383,12 @@ namespace TestClient
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
-            clientSocket.Send(b);
+            //
+            lock (clientSocket.GetStream())
+            {
+                clientSocket.GetStream().Write(b, 0, b.Length);
+            }
+            //  MessageBox.Show(_sendEvents.Count.ToString());
         }
 
         public void SendCharEvent(int character,KeyboardEventType type)
@@ -274,7 +409,12 @@ namespace TestClient
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
-            clientSocket.Send(b);
+            //
+            lock (clientSocket.GetStream())
+            {
+                clientSocket.GetStream().Write(b, 0, b.Length);
+            }
+            //  MessageBox.Show(_sendEvents.Count.ToString());
         }
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
@@ -424,7 +564,8 @@ namespace TestClient
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            SendExecuteJSEvent("alert('Hello world');");
+          //  SendExecuteJSEvent("alert('Hello world');");
+          SendPing();
         }
 
         //protected override void OnMouseWheel()
@@ -435,64 +576,5 @@ namespace TestClient
 
 
 
-    #region Utils
-    public class StreamString
-    {
-        private Stream ioStream;
-        private UnicodeEncoding streamEncoding;
-
-        public StreamString(Stream ioStream)
-        {
-            this.ioStream = ioStream;
-            streamEncoding = new UnicodeEncoding();
-        }
-
-        public string ReadString()
-        {
-            int len = 0;
-
-            len = ioStream.ReadByte() * 256;
-            len += ioStream.ReadByte();
-            byte[] inBuffer = new byte[len];
-            ioStream.Read(inBuffer, 0, len);
-
-            return streamEncoding.GetString(inBuffer);
-        }
-
-        public int WriteString(string outString)
-        {
-            byte[] outBuffer = streamEncoding.GetBytes(outString);
-            int len = outBuffer.Length;
-            if (len > UInt16.MaxValue)
-            {
-                len = (int)UInt16.MaxValue;
-            }
-            ioStream.WriteByte((byte)(len / 256));
-            ioStream.WriteByte((byte)(len & 255));
-            ioStream.Write(outBuffer, 0, len);
-            ioStream.Flush();
-
-            return outBuffer.Length + 2;
-        }
-    }
-
-    // Contains the method executed in the context of the impersonated user
-    public class ReadFileToStream
-    {
-        private string fn;
-        private StreamString ss;
-
-        public ReadFileToStream(StreamString str, string filename)
-        {
-            fn = filename;
-            ss = str;
-        }
-
-        public void Start()
-        {
-            string contents = File.ReadAllText(fn);
-            ss.WriteString(contents);
-        }
-    }
-    #endregion
+   
 }

@@ -26,10 +26,22 @@ namespace SharedPluginServer
 
         private static bool _initialized = false;
 
-       
+        public CefMessageRouterBrowserSide BrowserMessageRouter { get; private set; }
 
-         public CefMessageRouterBrowserSide BrowserMessageRouter { get; private set; }
+        public delegate void CefJSDialog(string message,string prompt,DialogEventType type);
 
+        public event CefJSDialog OnJSDialog;
+
+        public void InvokeCefDialog(string message, string prompt, DialogEventType type)
+        {
+            OnJSDialog?.Invoke(message,prompt,type);
+        }
+
+
+        public void ContinueDialog(bool res, string input)
+        {
+            _client.ContinueDialog(res, input);
+        }
 
 
         #region IDisposable
@@ -107,7 +119,7 @@ namespace SharedPluginServer
 
             // window.cefQuery({ request: 'my_request', onSuccess: function(response) { console.log(response); }, onFailure: function(err,msg) { console.log(err, msg); } });
             BrowserMessageRouter = new CefMessageRouterBrowserSide(new CefMessageRouterConfig());
-            BrowserMessageRouter.AddHandler(new WorkerMessageRouterHandler());
+            BrowserMessageRouter.AddHandler(new WorkerCefMessageRouterHandler());
            //log.Info("BrowserMessageRouter created");
         }
 

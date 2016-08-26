@@ -2,16 +2,16 @@ using Xilium.CefGlue;
 
 namespace SharedPluginServer
 {
-    class WorkerLifespanHandler : CefLifeSpanHandler
+    class WorkerCefLifespanHandler : CefLifeSpanHandler
     {
         public CefBrowser MainBrowser;
         public CefBrowserHost MainBrowserHost;
 
         private readonly CefWorker _mainWorker;
 
-        public WorkerLifespanHandler(CefWorker mainCefWorker)
+        public WorkerCefLifespanHandler(CefWorker mainCefWorker)
         {
-            
+            _mainWorker = mainCefWorker;
         }
 
         protected override void OnAfterCreated(CefBrowser browser)

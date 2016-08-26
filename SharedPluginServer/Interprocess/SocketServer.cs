@@ -37,6 +37,8 @@ namespace SharedPluginServer.Interprocess
 
         public static event ReceivedMessage OnReceivedMessage;
 
+       public UserConnection Client;
+
         public void Init(int port)
         {
 
@@ -57,7 +59,7 @@ namespace SharedPluginServer.Interprocess
                 {
                    
                    // UserConnection client = new UserConnection(_listener.AcceptTcpClient());
-                   DoBeginAcceptTcpClient(_listener);
+                   DoBeginAcceptTcpClient(_listener,this);
                    
 
 
@@ -75,13 +77,21 @@ namespace SharedPluginServer.Interprocess
         }
 
         #region async stuff
+
+        //helper
+       class DataPass
+       {
+           public TcpListener _listener;
+           public SocketServer _server;
+       }
+
         // Thread signal.
         public static ManualResetEvent tcpClientConnected =
     new ManualResetEvent(false);
 
         // Accept one client connection asynchronously.
         public static void DoBeginAcceptTcpClient(TcpListener
-            listener)
+            listener,SocketServer instServer)
         {
             // Set the event to nonsignaled state.
             tcpClientConnected.Reset();
@@ -93,7 +103,8 @@ namespace SharedPluginServer.Interprocess
             // BeginAcceptSocket() creates the accepted socket.
             listener.BeginAcceptTcpClient(
                 new AsyncCallback(DoAcceptTcpClientCallback),
-                listener);
+                //listener);
+                new DataPass() {_listener = listener, _server = instServer});
 
             // Wait until a connection is made and processed before 
             // continuing.
@@ -105,16 +116,19 @@ namespace SharedPluginServer.Interprocess
         {
             if (isWorking)
             {
-                // Get the listener that handles the client request.
-                TcpListener listener = (TcpListener) ar.AsyncState;
 
+                DataPass data=(DataPass)ar.AsyncState;
+                // Get the listener that handles the client request.
+                // TcpListener listener = (TcpListener) ar.AsyncState;
+                TcpListener listener = data._listener;
+                SocketServer srv = data._server;
                 // End the operation and display the received data on 
                 // the console.
                 TcpClient client = listener.EndAcceptTcpClient(ar);
 
-                UserConnection uclient = new UserConnection(client);
+                 srv.Client = new UserConnection(client);
 
-                uclient.OnLineReceived += OnLineReceived;
+                srv.Client.OnLineReceived += OnLineReceived;
                 // Signal the calling thread to continue.
                 tcpClientConnected.Set();
             }
@@ -193,6 +207,27 @@ namespace SharedPluginServer.Interprocess
             }
         }
 
+        public byte[] SendSync(byte[] data)
+        {
+            lock (client.GetStream())
+            {
+                // StreamWriter writer = new StreamWriter(client.GetStream());
+                //writer.Write(Data + (char)13 + (char)10);
+                // Make sure all data is sent now.
+                // writer.Flush();
+                client.GetStream().Write(data, 0, data.Length);
+            }
+
+            lock (client.GetStream())
+            {
+                int read = client.GetStream().Read(readBuffer, 0, READ_BUFFER_SIZE);
+                
+            }
+
+            return readBuffer;
+
+        }
+
         private void StreamReceiver(IAsyncResult ar)
         {
             int BytesRead;
@@ -221,6 +256,33 @@ namespace SharedPluginServer.Interprocess
             {
             }
         }
+
+      /*  public byte[] SendPing()
+        {
+            GenericEvent ge = new GenericEvent()
+            {
+                Type = GenericEventType.Navigate, //could be any
+                GenericType = EventType.Ping,
+
+            };
+
+            EventPacket ep = new EventPacket()
+            {
+                Event = ge,
+                Type = EventType.Ping
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+            byte[] b = mstr.GetBuffer();
+            //
+            /*lock (client.GetStream())
+            {
+                client.GetStream().Write(b, 0, b.Length);
+            }
+            return SendSync(b);
+        }*/
     }
     #endregion
 }

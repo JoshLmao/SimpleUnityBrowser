@@ -21,8 +21,9 @@ namespace SharedPluginServer
 
         private readonly WorkerCefLoadHandler _loadHandler;
         private readonly WorkerCefRenderHandler _renderHandler;
-        private readonly WorkerLifespanHandler _lifespanHandler;
-      private readonly WorkerWebRequestHandler _requestHandler;
+        private readonly WorkerCefLifespanHandler _lifespanHandler;
+      private readonly WorkerCefWebRequestHandler _requestHandler;
+        private readonly WorkerCefJSDialogHandler _jsDialogHandler;
 
         private CefWorker _mainWorker;
 
@@ -36,10 +37,16 @@ namespace SharedPluginServer
             _renderHandler = new WorkerCefRenderHandler(windowWidth, windowHeight);
             _loadHandler = new WorkerCefLoadHandler();
            // _loadHandler.OnLoadFinished += _loadHandler_OnLoadFinished;
-            _lifespanHandler=new WorkerLifespanHandler(_mainWorker);
-            _requestHandler=new WorkerWebRequestHandler(_mainWorker);
+            _lifespanHandler=new WorkerCefLifespanHandler(_mainWorker);
+            _requestHandler=new WorkerCefWebRequestHandler(_mainWorker);
+            _jsDialogHandler=new WorkerCefJSDialogHandler(_mainWorker);
             
 
+        }
+
+        public void ContinueDialog(bool res, string input)
+        {
+            _jsDialogHandler.Continue(res,input);
         }
 
         protected override CefRequestHandler GetRequestHandler()
@@ -47,8 +54,12 @@ namespace SharedPluginServer
             return _requestHandler;
         }
 
+        protected override CefJSDialogHandler GetJSDialogHandler()
+        {
+            return _jsDialogHandler;
+        }
 
-        
+
 
         public void SetMemServer(SharedMemServer memServer)
         {
