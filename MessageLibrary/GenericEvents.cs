@@ -29,11 +29,14 @@ namespace MessageLibrary
     public enum GenericEventType
     {
         Shutdown=0,
+        Navigate=1,
     }
 
     [Serializable]
     public class GenericEvent : AbstractEvent
     {
         public GenericEventType Type;
+
+        public string NavigateUrl;
     }
 }

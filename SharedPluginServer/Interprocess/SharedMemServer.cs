@@ -15,17 +15,19 @@ namespace SharedPluginServer
 
         private bool _isOpen;
 
+        public string Filename;
+
         private static readonly log4net.ILog log =
    log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
        
 
-        public void Init(int size)
+        public void Init(int size,string filename)
         {
-            _sharedBuf=new SharedArray<byte>("MainSharedMem",size);
+            _sharedBuf=new SharedArray<byte>(filename,size);
             _isOpen = true;
-
+            Filename = filename;
 
         }
 
@@ -36,7 +38,7 @@ namespace SharedPluginServer
             if (_sharedBuf.Length != newSize)
             {
                 _sharedBuf.Close();
-                _sharedBuf = new SharedArray<byte>("MainSharedMem", newSize);
+                _sharedBuf = new SharedArray<byte>(Filename, newSize);
             }
         }
 
@@ -46,7 +48,6 @@ namespace SharedPluginServer
             {
                 if (bytes.Length > _sharedBuf.Length)
                 {
-                  //  log.Info("______RESIZING SHARED MEM");
                     Resize(bytes.Length);
                 }
                 _sharedBuf.Write(bytes);

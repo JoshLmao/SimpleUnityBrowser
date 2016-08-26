@@ -140,28 +140,38 @@ public class BrowserEngine
         }
         else
         {
-            foreach (System.Diagnostics.Process clsProcess in System.Diagnostics.Process.GetProcesses())
-                if (clsProcess.ProcessName == _pluginProcess.ProcessName)
-                {
-                    Thread.Sleep(100); //give some time to initialize
-                    try
+            try
+            {
+                string processName = _pluginProcess.ProcessName;//could be InvalidOperationException
+                foreach (System.Diagnostics.Process clsProcess in System.Diagnostics.Process.GetProcesses())
+                    if (clsProcess.ProcessName == processName) 
                     {
-                        _mainTexArray = new SharedArray<byte>("MainSharedMem");
-                        //Connect
-                        IPAddress ip = IPAddress.Parse("127.0.0.1");
-                        _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                        _clientSocket.Connect(new IPEndPoint(ip, 8885));
-                        Initialized = true;
+                        Thread.Sleep(100); //give it some time to initialize
+                        try
+                        {
+                            _mainTexArray = new SharedArray<byte>("MainSharedMem");
+                            //Connect
+                            IPAddress ip = IPAddress.Parse("127.0.0.1");
+                            _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                            _clientSocket.Connect(new IPEndPoint(ip, 8885));
+                            Initialized = true;
+                        }
+                        catch (Exception)
+                        {
+                            //SharedMem and TCP exceptions
+                            
+                        }
+
+
+
                     }
-                    catch (Exception)
-                    {
-
-                        // throw;
-                    }
-
-
-
-                }
+            }
+            catch (Exception)
+            {
+                
+                //InvalidOperationException
+            }
+            
         }
     }
 

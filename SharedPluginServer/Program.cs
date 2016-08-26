@@ -38,8 +38,7 @@ namespace SharedPluginServer
 
         public void HandleMessage(EventPacket msg)
         {
-          //  log.Info("________Packet:" + msg.Type);
-
+          
             switch (msg.Type)
             {
                 case EventType.Generic:
@@ -56,23 +55,27 @@ namespace SharedPluginServer
                                     log.Info("==============SHUTTING DOWN==========");
                                     SocketServer.OnReceivedMessage -= HandleMessage;
                                        _mainWorker.Shutdown();
-                                    //log.Info("___MAIN");
+                                    
                                      _memServer.Dispose();
-                                   log.Info("___MEM");
+                                  
                                     _controlServer.Shutdown();
-                                     log.Info("___CONTROL");
+                                     
                                             
                                             Application.Exit();
-                                  // Environment.Exit(Environment.ExitCode);
+                                  
                                 }
                                 catch (Exception e)
                                 {
 
-                                    log.Info("______EXIT:"+e.StackTrace);
+                                    log.Info("Exception on shutdown:"+e.StackTrace);
                                 }
 
                                 break;
                             }
+                               case GenericEventType.Navigate:
+                                    
+                                    _mainWorker.Navigate(genericEvent.NavigateUrl);
+                                break;
                         }
                     }
                     break;
@@ -146,12 +149,10 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
        // static void Main()
         {
 
-            int defWidth = 1280;
-            int defHeight = 720;
-            string defUrl = "http://www.yandex.ru";
+           
 
 
-            log.Info("ARGS:"+args.Length);
+            
           
 
            
@@ -199,6 +200,8 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
             };
 
+
+
             try
             {
                 CefRuntime.Initialize(cefMainArgs, cefSettings, cefApp, IntPtr.Zero);
@@ -211,6 +214,13 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
             //WARNING: process command line AFTER initialization
 
+            int defWidth = 1280;
+            int defHeight = 720;
+            string defUrl = "http://www.yandex.ru";
+            string defFileName = "MainSharedMem";
+            int defPort = 8885;
+            //log.Info("ARGS:" + args.Length);
+
             if (args.Length > 1)
             {
                 
@@ -220,16 +230,23 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             }
             if (args.Length > 2)
                 defUrl = args[2];
+            if (args.Length > 3)
+                defFileName = args[3];
+            if (args.Length > 4)
+                defPort = Int32.Parse(args[4]);
+
+            log.InfoFormat("Starting plugin, settings: width:{0},height:{1},url:{2},memfile:{3},port:{4}",
+                defWidth,defHeight,defUrl,defFileName,defPort);
 
 
             CefWorker worker =new CefWorker();
            worker.Init(defWidth,defHeight,defUrl);
             SharedMemServer _server=new SharedMemServer();
-            _server.Init(defWidth*defHeight*4);
+            _server.Init(defWidth*defHeight*4,defFileName);
 
            
             SocketServer ssrv=new SocketServer();
-            ssrv.Init();
+            ssrv.Init(defPort);
 
             var app=new App(worker,_server,ssrv);
            // var app = new App(null, _server, ssrv);

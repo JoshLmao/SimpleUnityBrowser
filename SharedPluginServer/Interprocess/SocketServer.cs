@@ -26,7 +26,7 @@ namespace SharedPluginServer.Interprocess
 
 
        
-        private  int myPort = 8885;
+        public  int MainPort = 8885;
         private TcpListener _listener;
 
         private Thread listenerThread;
@@ -37,19 +37,20 @@ namespace SharedPluginServer.Interprocess
 
         public static event ReceivedMessage OnReceivedMessage;
 
-        public void Init()
+        public void Init(int port)
         {
 
             listenerThread = new Thread(new ThreadStart(ListenCallback));
             listenerThread.IsBackground = true;
             listenerThread.Start();
+            MainPort = port;
         }
 
        private void ListenCallback()
        {
             try
             {
-                _listener = new TcpListener(System.Net.IPAddress.Any, myPort);
+                _listener = new TcpListener(System.Net.IPAddress.Any, MainPort);
                 _listener.Start();
 
                 do

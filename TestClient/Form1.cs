@@ -46,6 +46,10 @@ namespace TestClient
 
         private Bitmap _texture;
 
+        public string memfile= "MainSharedMem";
+
+        public int port = 8885;
+
         public Form1()
         {
             InitializeComponent();
@@ -57,7 +61,22 @@ namespace TestClient
         public void Init()
         {
 
-            string args = pictureBox1.Width.ToString() + " " + pictureBox1.Height.ToString();
+
+
+            string args = pictureBox1.Width.ToString() + " " + pictureBox1.Height.ToString()+" ";
+            args = args + "http://www.google.ru"+" ";
+            Guid memid = Guid.NewGuid();
+
+            memfile = memid.ToString();
+            args = args + memfile + " ";
+           Random r=new Random();
+            port = 8880 + r.Next(10);
+
+         
+            args = args + port.ToString();
+
+            //MessageBox.Show(args);
+
             Process pluginProcess = new Process()
             {
                 StartInfo = new ProcessStartInfo()
@@ -84,12 +103,12 @@ namespace TestClient
                 Thread.Sleep(1000);
             }
 
-            arr = new SharedArray<byte>("MainSharedMem");
+            arr = new SharedArray<byte>(memfile);
 
             //Connect
             IPAddress ip = IPAddress.Parse("127.0.0.1");
             clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            clientSocket.Connect(new IPEndPoint(ip, 8885));
+            clientSocket.Connect(new IPEndPoint(ip, port));
 
             _texture = new Bitmap(pictureBox1.Width, pictureBox1.Width);
 
@@ -191,6 +210,28 @@ namespace TestClient
             byte[] b = mstr.GetBuffer();
             clientSocket.Send(b);
 
+        }
+
+        public void SendNavigateEvent(string url)
+        {
+            GenericEvent ge = new GenericEvent()
+            {
+                Type = GenericEventType.Navigate,
+                GenericType = EventType.Generic,
+                NavigateUrl = url
+            };
+
+            EventPacket ep = new EventPacket()
+            {
+                Event = ge,
+                Type = EventType.Generic
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+            byte[] b = mstr.GetBuffer();
+            clientSocket.Send(b);
         }
 
         public void SendCharEvent(int character,KeyboardEventType type)
@@ -311,20 +352,7 @@ namespace TestClient
           
         }
 
-        private void button1_KeyPress(object sender, KeyPressEventArgs e)
-        {
-           
-        }
-
-        private void button1_KeyDown(object sender, KeyEventArgs e)
-        {
-            
-        }
-
-        private void button1_KeyUp(object sender, KeyEventArgs e)
-        {
-            
-        }
+        
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -357,6 +385,19 @@ namespace TestClient
         private void pictureBox1_MouseHover(object sender, EventArgs e)
         {
             pictureBox1.Focus();
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+           // MessageBox.Show(textBox1.Text);
+        }
+
+        private void textBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                SendNavigateEvent(textBox1.Text);
+            }
         }
 
         //protected override void OnMouseWheel()

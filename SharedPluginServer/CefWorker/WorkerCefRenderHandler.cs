@@ -90,29 +90,7 @@ namespace SharedPluginServer
                 _memServer.WriteBytes(MainBitmap);
 
 
-            // Save the provided buffer (a bitmap image) as a PNG.
-            // if (MainBitmap == null)
-            // {
-            //     MainBitmap = new Bitmap(width, height, width*4, PixelFormat.Format32bppRgb, buffer);
-            //    MessageBox.Show("BITMAP CREATED");
-            // }
-            // else
-            // {
-            /*Rectangle rect = new Rectangle(0, 0, MainBitmap.Width, MainBitmap.Height);
-            BitmapData bmpData =
-           MainBitmap.LockBits(rect, ImageLockMode.ReadWrite,
-                         PixelFormat.Format32bppRgb);
-            IntPtr ptr = bmpData.Scan0;
-            int numBytes = bmpData.Stride * MainBitmap.Height;
-            //Marshal.Copy(buffer, 0, ptr, numBytes);
-             CefWorker.CopyMemory(ptr, buffer, (uint) numBytes);
-            MainBitmap.UnlockBits(bmpData);*/
-
-            //  MainBitmap = new Bitmap(width, height, width * 4, PixelFormat.Format32bppRgb, buffer);
-            // }
-            // bitmap.Save("LastOnPaint.png", ImageFormat.Png);
-            //var bitmap = new Bitmap(width, height, width * 4, PixelFormat.Format32bppRgb, buffer);
-            //bitmap.Save("LastOnPaint.png", ImageFormat.Png);
+            
         }
 
     protected override void OnCursorChange(CefBrowser browser, IntPtr cursorHandle, CefCursorType type, CefCursorInfo customCursorInfo)

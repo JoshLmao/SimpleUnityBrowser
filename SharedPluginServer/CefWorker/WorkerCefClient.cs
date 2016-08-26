@@ -98,12 +98,9 @@ namespace SharedPluginServer
             return _renderHandler.CurrentHeight;
         }
 
-        public void Navigate(string url)
-        {
-            _lifespanHandler.MainBrowser.GetMainFrame().LoadUrl(url);
-        }
+        
 
-        #region Events
+#region Events
         public void MouseEvent(int x,int y,bool updown,MouseButton button)
         {
             //_lifespanHandler.MainBrowserHost.SendFocusEvent(true);
@@ -201,7 +198,17 @@ namespace SharedPluginServer
             _lifespanHandler.MainBrowser.GetHost().SendMouseWheelEvent(mouseEvent,0,delta);
         }
 
-#endregion
+        #endregion
+
+        #region Controls
+
+        public void Navigate(string url)
+        {
+            _lifespanHandler.MainBrowser.GetMainFrame().LoadUrl(url);
+        }
+
+
+        #endregion
         public void Shutdown()
         {
             _lifespanHandler.MainBrowser.GetHost().CloseBrowser();
