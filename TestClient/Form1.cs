@@ -69,11 +69,11 @@ namespace TestClient
 
             memfile = memid.ToString();
             args = args + memfile + " ";
-           Random r=new Random();
+         /*  Random r=new Random();
             port = 8880 + r.Next(10);
 
          
-            args = args + port.ToString();
+            args = args + port.ToString();*/
 
             //MessageBox.Show(args);
 
@@ -219,6 +219,28 @@ namespace TestClient
                 Type = GenericEventType.Navigate,
                 GenericType = EventType.Generic,
                 NavigateUrl = url
+            };
+
+            EventPacket ep = new EventPacket()
+            {
+                Event = ge,
+                Type = EventType.Generic
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+            byte[] b = mstr.GetBuffer();
+            clientSocket.Send(b);
+        }
+
+        public void SendExecuteJSEvent(string js)
+        {
+            GenericEvent ge = new GenericEvent()
+            {
+                Type = GenericEventType.ExecuteJS,
+                GenericType = EventType.Generic,
+                JsCode= js
             };
 
             EventPacket ep = new EventPacket()
@@ -398,6 +420,11 @@ namespace TestClient
             {
                 SendNavigateEvent(textBox1.Text);
             }
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            SendExecuteJSEvent("alert('Hello world');");
         }
 
         //protected override void OnMouseWheel()

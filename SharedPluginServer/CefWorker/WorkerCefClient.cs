@@ -22,33 +22,39 @@ namespace SharedPluginServer
         private readonly WorkerCefLoadHandler _loadHandler;
         private readonly WorkerCefRenderHandler _renderHandler;
         private readonly WorkerLifespanHandler _lifespanHandler;
-      //  private readonly WorkerWebRequestHandler _requestHandler;
+      private readonly WorkerWebRequestHandler _requestHandler;
 
+        private CefWorker _mainWorker;
 
         public delegate void LoadFinished(int StatusCode);
 
         public event LoadFinished OnLoadFinished;
 
-        public WorkerCefClient(int windowWidth, int windowHeight)
+        public WorkerCefClient(int windowWidth, int windowHeight,CefWorker mainCefWorker)
         {
+            _mainWorker = mainCefWorker;
             _renderHandler = new WorkerCefRenderHandler(windowWidth, windowHeight);
             _loadHandler = new WorkerCefLoadHandler();
            // _loadHandler.OnLoadFinished += _loadHandler_OnLoadFinished;
-            _lifespanHandler=new WorkerLifespanHandler();
-          //  _requestHandler=new WorkerWebRequestHandler();
+            _lifespanHandler=new WorkerLifespanHandler(_mainWorker);
+            _requestHandler=new WorkerWebRequestHandler(_mainWorker);
+            
 
-           
         }
 
-        /*protected override CefRequestHandler GetRequestHandler()
+        protected override CefRequestHandler GetRequestHandler()
         {
             return _requestHandler;
-        }*/
+        }
+
+
+        
 
         public void SetMemServer(SharedMemServer memServer)
         {
             _renderHandler._memServer = memServer;
         }
+
 
       
 
@@ -63,14 +69,14 @@ namespace SharedPluginServer
             return _renderHandler;
         }
 
-       /* protected override bool OnProcessMessageReceived(CefBrowser browser, CefProcessId sourceProcess,
+        protected override bool OnProcessMessageReceived(CefBrowser browser, CefProcessId sourceProcess,
             CefProcessMessage message)
         {
-            var handled = CefWorker.BrowserMessageRouter.OnProcessMessageReceived(browser, sourceProcess, message);
+            var handled = _mainWorker.BrowserMessageRouter.OnProcessMessageReceived(browser, sourceProcess, message);
             if (handled) return true;
 
             return false;
-        }*/
+        }
 
 
         protected override CefLoadHandler GetLoadHandler()
@@ -207,6 +213,17 @@ namespace SharedPluginServer
             _lifespanHandler.MainBrowser.GetMainFrame().LoadUrl(url);
         }
 
+
+        #endregion
+
+
+        #region javascript
+
+        public void ExecuteJavaScript(string jscode)
+        {
+            CefFrame frame = _lifespanHandler.MainBrowser.GetMainFrame();
+            frame.ExecuteJavaScript(jscode,frame.Url,0);
+        }
 
         #endregion
         public void Shutdown()

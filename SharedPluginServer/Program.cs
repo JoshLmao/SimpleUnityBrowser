@@ -76,6 +76,10 @@ namespace SharedPluginServer
                                     
                                     _mainWorker.Navigate(genericEvent.NavigateUrl);
                                 break;
+
+                                case GenericEventType.ExecuteJS:
+                                    _mainWorker.ExecuteJavaScript(genericEvent.JsCode);
+                                break;
                         }
                     }
                     break;

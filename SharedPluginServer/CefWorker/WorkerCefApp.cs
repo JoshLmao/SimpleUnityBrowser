@@ -5,24 +5,24 @@ namespace SharedPluginServer
 {
     class WorkerCefApp : CefApp
     {
-       // private readonly WorkerCefRenderProcessHandler _renderProcessHandler;
+        private readonly WorkerCefRenderProcessHandler _renderProcessHandler;
 
        
 
         public WorkerCefApp()
         {
-         //   _renderProcessHandler=new WorkerCefRenderProcessHandler();
+            _renderProcessHandler=new WorkerCefRenderProcessHandler();
 
+        }
+
+        protected override CefRenderProcessHandler GetRenderProcessHandler()
+        {
+            return _renderProcessHandler;
         }
 
 
 
 
-
-        /*  protected override CefRenderProcessHandler GetRenderProcessHandler()
-          {
-            //  return _renderProcessHandler;
-          }*/
 
         //GPU and others
         protected override void OnBeforeCommandLineProcessing(string processType, CefCommandLine commandLine)

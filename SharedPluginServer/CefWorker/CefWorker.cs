@@ -28,7 +28,7 @@ namespace SharedPluginServer
 
        
 
-        // public static CefMessageRouterBrowserSide BrowserMessageRouter { get; private set; }
+         public CefMessageRouterBrowserSide BrowserMessageRouter { get; private set; }
 
 
 
@@ -65,7 +65,7 @@ namespace SharedPluginServer
 
                
 
-              //  RegisterMessageRouter();
+               RegisterMessageRouter();
 
                 CefWindowInfo cefWindowInfo = CefWindowInfo.Create();
                 cefWindowInfo.SetAsWindowless(IntPtr.Zero, false);
@@ -76,7 +76,7 @@ namespace SharedPluginServer
                 cefBrowserSettings.TabToLinks=CefState.Enabled;
                 cefBrowserSettings.WebSecurity=CefState.Disabled;
 
-            _client = new WorkerCefClient(width, height);
+            _client = new WorkerCefClient(width, height,this);
             //_client = new WorkerCefClient(1280, 720);
             //string url = "http://www.reddit.com/";
 
@@ -97,7 +97,7 @@ namespace SharedPluginServer
             _client.SetMemServer(memServer);
         }
 
-        /*private void RegisterMessageRouter()
+        private void RegisterMessageRouter()
         {
             if (!CefRuntime.CurrentlyOn(CefThreadId.UI))
             {
@@ -108,8 +108,8 @@ namespace SharedPluginServer
             // window.cefQuery({ request: 'my_request', onSuccess: function(response) { console.log(response); }, onFailure: function(err,msg) { console.log(err, msg); } });
             BrowserMessageRouter = new CefMessageRouterBrowserSide(new CefMessageRouterConfig());
             BrowserMessageRouter.AddHandler(new WorkerMessageRouterHandler());
-            log.Info("BrowserMessageRouter created");
-        }*/
+           //log.Info("BrowserMessageRouter created");
+        }
 
         #region Task
 
@@ -164,6 +164,11 @@ namespace SharedPluginServer
         public void Navigate(string url)
         {
             _client.Navigate(url);
+        }
+
+        public void ExecuteJavaScript(string jscode)
+        {
+            _client.ExecuteJavaScript(jscode);
         }
 
         public void MouseEvent(int x, int y,bool updown,MouseButton button)

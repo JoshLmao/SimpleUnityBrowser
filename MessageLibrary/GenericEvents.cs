@@ -30,6 +30,7 @@ namespace MessageLibrary
     {
         Shutdown=0,
         Navigate=1,
+        ExecuteJS=2,
     }
 
     [Serializable]
@@ -38,5 +39,7 @@ namespace MessageLibrary
         public GenericEventType Type;
 
         public string NavigateUrl;
+
+        public string JsCode;
     }
 }
