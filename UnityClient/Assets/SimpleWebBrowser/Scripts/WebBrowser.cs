@@ -37,6 +37,8 @@ public class WebBrowser : MonoBehaviour
 
     public bool KeepUIVisible = false;
 
+    public Camera MainCamera;
+
     [Header("Dialog settings")]
     public Canvas DialogCanvas;
 
@@ -80,7 +82,6 @@ public class WebBrowser : MonoBehaviour
     private int posX = 0;
     private int posY = 0;
 
-    private Camera _mainCamera;
 
     void Awake()
     {
@@ -105,14 +106,19 @@ public class WebBrowser : MonoBehaviour
     // Use this for initialization
     void Start ()
     {
-        _mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
-        
-            _mainMaterial = GetComponent<MeshRenderer>().material;
+        if (MainCamera == null)
+        {
+            MainCamera = Camera.main;
+            if(MainCamera==null)
+                Debug.LogError("Error: can't find main camera");
+        }
+
+        _mainMaterial = GetComponent<MeshRenderer>().material;
             _mainMaterial.SetTexture("_MainTex", _mainEngine.BrowserTexture);
             _mainMaterial.SetTextureScale("_MainTex", new Vector2(-1, 1));
 
            
-            mainUIPanel.MainCanvas.worldCamera = _mainCamera;
+            mainUIPanel.MainCanvas.worldCamera = MainCamera;
         
         
        
@@ -126,7 +132,7 @@ public class WebBrowser : MonoBehaviour
         //attach dialogs and querys
         _mainEngine.OnJavaScriptDialog += _mainEngine_OnJavaScriptDialog;
         _mainEngine.OnJavaScriptQuery += _mainEngine_OnJavaScriptQuery;
-        DialogCanvas.worldCamera= _mainCamera;
+        DialogCanvas.worldCamera= MainCamera;
         DialogCanvas.gameObject.SetActive(false);
 
     }
@@ -337,7 +343,7 @@ public class WebBrowser : MonoBehaviour
             RaycastHit hit;
             if (
                 !Physics.Raycast(
-                    _mainCamera.ScreenPointToRay(Input.mousePosition), out hit))
+                    MainCamera.ScreenPointToRay(Input.mousePosition), out hit))
                 return new Vector2(-1f, -1f);
             Texture tex = _mainMaterial.mainTexture;
 

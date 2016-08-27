@@ -35,7 +35,6 @@ public class WebBrowser2D :MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
     [Header("2D setup")]
     public RawImage Browser2D=null;
 
-   public  Canvas FlatCanvas;
 
     [Header("UI settings")]
     public BrowserUI mainUIPanel;
