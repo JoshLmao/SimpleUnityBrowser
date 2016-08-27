@@ -34,7 +34,9 @@ namespace MessageLibrary
         Navigate=1,
         GoBack=2,
         GoForward=3,
-        ExecuteJS=4
+        ExecuteJS=4,
+        JSQuery=5,
+        JSQueryResponse=6
 
         
     }
@@ -49,5 +51,9 @@ namespace MessageLibrary
         public string NavigateUrl;
 
         public string JsCode;
+
+        public string JsQuery;
+
+        public string JsQueryResponse;
     }
 }

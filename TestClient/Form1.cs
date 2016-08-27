@@ -159,7 +159,7 @@ namespace TestClient
                             {
                                 _inModalDialog = true;
                                 MessageBox.Show(dev.Message, "InApp");
-                                    SendDialogResponce(true);
+                                    SendDialogResponse(true);
                                 
                                     _inModalDialog = false;
                                     break;
@@ -170,15 +170,28 @@ namespace TestClient
                                     _inModalDialog = true;
                                 if (MessageBox.Show(dev.Message, "InApp", MessageBoxButtons.OKCancel) == DialogResult.OK)
                                 {
-                                        SendDialogResponce(true);
+                                        SendDialogResponse(true);
                                 }
                                 else
                                 {
-                                        SendDialogResponce(false);
+                                        SendDialogResponse(false);
                                  }
                                     _inModalDialog = false;
                                     break;
                             }
+                        }
+                    }
+
+                    if (ep.Type == BrowserEventType.Generic)
+                    {
+                        GenericEvent ge=ep.Event as GenericEvent;
+
+                        if (ge.Type == GenericEventType.JSQuery)
+                        {
+                            if(MessageBox.Show("JS QUERY:" + ge.JsQuery,"Query",MessageBoxButtons.OKCancel)==DialogResult.OK)
+                                SendQueryResponse("Query ok");
+                            else
+                                SendQueryResponse("Query cancel");
                         }
                     }
                 }
@@ -196,7 +209,7 @@ namespace TestClient
             }
         }
 
-        public void SendDialogResponce(bool ok)
+        public void SendDialogResponse(bool ok)
         {
             DialogEvent de = new DialogEvent()
             {
@@ -222,6 +235,32 @@ namespace TestClient
                 clientSocket.GetStream().Write(b, 0, b.Length);
             }
 
+        }
+
+        public void SendQueryResponse(string response)
+        {
+            GenericEvent ge = new GenericEvent()
+            {
+                Type = GenericEventType.JSQueryResponse,
+                GenericType = BrowserEventType.Generic,
+                JsQueryResponse = response
+            };
+
+            EventPacket ep = new EventPacket()
+            {
+                Event = ge,
+                Type = BrowserEventType.Generic
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+            byte[] b = mstr.GetBuffer();
+            //
+            lock (clientSocket.GetStream())
+            {
+                clientSocket.GetStream().Write(b, 0, b.Length);
+            }
         }
 
 
@@ -569,8 +608,8 @@ namespace TestClient
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-          //  SendExecuteJSEvent("alert('Hello world');");
-          SendPing();
+            SendExecuteJSEvent("alert('Hello world');");
+          //SendPing();
         }
 
         private void button2_Click(object sender, EventArgs e)

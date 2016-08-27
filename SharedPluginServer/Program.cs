@@ -44,8 +44,31 @@ namespace SharedPluginServer
             _pingTimer.Start();*/
 
             _mainWorker.OnJSDialog += _mainWorker_OnJSDialog;
+            _mainWorker.OnBrowserJSQuery += _mainWorker_OnBrowserJSQuery;
 
             SocketServer.OnReceivedMessage += HandleMessage;
+        }
+
+        private void _mainWorker_OnBrowserJSQuery(string query)
+        {
+            GenericEvent msg = new GenericEvent()
+            {
+                JsQuery = query,
+                GenericType = BrowserEventType.Generic,
+                Type = GenericEventType.JSQuery
+            };
+
+            EventPacket ep = new EventPacket
+            {
+                Event = msg,
+                Type = BrowserEventType.Generic
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+
+            _controlServer.Client.SendData(mstr.GetBuffer());
         }
 
         private void _mainWorker_OnJSDialog(string message, string prompt, DialogEventType type)
@@ -151,7 +174,12 @@ namespace SharedPluginServer
                                 case GenericEventType.ExecuteJS:
                                     _mainWorker.ExecuteJavaScript(genericEvent.JsCode);
                                 break;
-
+                               
+                            case GenericEventType.JSQueryResponse:
+                            {
+                                        _mainWorker.AnswerQuery(genericEvent.JsQueryResponse);
+                             break;   
+                            }
                                
                         }
                     }

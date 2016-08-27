@@ -31,10 +31,17 @@ namespace SharedPluginServer
             return false;
         }
 
+        protected override void OnWebKitInitialized()
+        {
+            
+        }
+
        protected override bool OnBeforeNavigation(CefBrowser browser, CefFrame frame, CefRequest request,
             CefNavigationType navigation_type, bool isRedirect)
         {
             return false;
         }
     }
+
+
 }
