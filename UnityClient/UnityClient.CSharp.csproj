@@ -78,10 +78,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\SampleJSQueryHandler.cs" />
+    <Compile Include="Assets\SimpleWebBrowser\Demo\SampleJSQueryHandler.cs" />
     <Compile Include="Assets\SimpleWebBrowser\Scripts\BrowserEngine.cs" />
     <Compile Include="Assets\SimpleWebBrowser\Scripts\BrowserUI.cs" />
     <Compile Include="Assets\SimpleWebBrowser\Scripts\WebBrowser.cs" />
+    <Compile Include="Assets\SimpleWebBrowser\Scripts\WebBrowser2D.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\SimpleWebBrowser\PluginServer\x64\log-file.txt" />

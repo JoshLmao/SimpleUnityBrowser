@@ -8,6 +8,7 @@ using MessageLibrary;
 using SharedMemory;
 
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BrowserEngine
 {
@@ -19,7 +20,7 @@ public class BrowserEngine
 
     private static System.Object sPixelLock;
 
-    public Texture2D BrowserTexture=null;
+    public Texture2D BrowserTexture = null;
     public bool Initialized = false;
 
    
@@ -36,6 +37,7 @@ public class BrowserEngine
     #region Settings
     public int kWidth = 512;
     public int kHeight = 512;
+
     private string _sharedFileName;
     private int _port;
     private string _initialURL;
@@ -91,16 +93,21 @@ public class BrowserEngine
 
 
         Debug.Log("Starting server from:"+PluginServerPath);
+        
+            kWidth = width;
+            kHeight = height;
+        
 
 
-        kWidth = width;
-        kHeight = height;
         _sharedFileName = sharedfilename;
         _port = port;
         _initialURL = initialURL;
 
         if(BrowserTexture==null)
         BrowserTexture = new Texture2D(kWidth, kHeight, TextureFormat.BGRA32, false);
+        
+
+
         sPixelLock = new object();
 
 
@@ -303,11 +310,37 @@ public class BrowserEngine
 
     }
 
+    public void SendExecuteJSEvent(string js)
+    {
+        GenericEvent ge = new GenericEvent()
+        {
+            Type = GenericEventType.ExecuteJS,
+            GenericType = BrowserEventType.Generic,
+            JsCode = js
+        };
+
+        EventPacket ep = new EventPacket()
+        {
+            Event = ge,
+            Type = BrowserEventType.Generic
+        };
+
+        MemoryStream mstr = new MemoryStream();
+        BinaryFormatter bf = new BinaryFormatter();
+        bf.Serialize(mstr, ep);
+        byte[] b = mstr.GetBuffer();
+        lock (_clientSocket.GetStream())
+        {
+            _clientSocket.GetStream().Write(b, 0, b.Length);
+        }
+       
+    }
 
 
-#endregion
 
-    
+    #endregion
+
+
 
     public void UpdateTexture()
     {
@@ -326,8 +359,10 @@ public class BrowserEngine
 
             lock (sPixelLock)
             {
-                BrowserTexture.LoadRawTextureData(_bufferBytes);
-                BrowserTexture.Apply();
+                
+                    BrowserTexture.LoadRawTextureData(_bufferBytes);
+                    BrowserTexture.Apply();
+               
             }
 
 

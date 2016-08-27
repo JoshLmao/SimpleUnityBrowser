@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public class BrowserUI : MonoBehaviour
 {
 
-    public Canvas MainCanvas;
+    public Canvas MainCanvas=null;
     public InputField UrlField;
     public Image Background;
     public Button Back;

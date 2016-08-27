@@ -4,9 +4,10 @@ using System.Collections;
 using System.Text;
 //using System.Diagnostics;
 using MessageLibrary;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class WebBrowser : MonoBehaviour
+public class WebBrowser2D :MonoBehaviour,IPointerEnterHandler,IPointerExitHandler,IPointerDownHandler,IPointerUpHandler
 {
 
     #region General
@@ -31,6 +32,10 @@ public class WebBrowser : MonoBehaviour
     #endregion
 
 
+    [Header("2D setup")]
+    public RawImage Browser2D=null;
+
+   public  Canvas FlatCanvas;
 
     [Header("UI settings")]
     public BrowserUI mainUIPanel;
@@ -38,7 +43,7 @@ public class WebBrowser : MonoBehaviour
     public bool KeepUIVisible = false;
 
     [Header("Dialog settings")]
-    public Canvas DialogCanvas;
+    public GameObject DialogPanel;
 
     public Text DialogText;
     public Button OkButton;
@@ -54,6 +59,10 @@ public class WebBrowser : MonoBehaviour
     //query - threading
     private bool _startQuery = false;
     private string _jsQueryString = "";
+
+    //input
+    //private GraphicRaycaster _raycaster;
+    //private StandaloneInputModule _input;
 
     #region JS Query events
 
@@ -81,7 +90,7 @@ public class WebBrowser : MonoBehaviour
     private int posY = 0;
 
     private Camera _mainCamera;
-
+    #region Initialization
     void Awake()
     {
         _mainEngine=new BrowserEngine();
@@ -102,18 +111,15 @@ public class WebBrowser : MonoBehaviour
         _mainEngine.InitPlugin(Width,Height,MemoryFile,Port,InitialURL);
     }
 
-    // Use this for initialization
+  
     void Start ()
     {
         _mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
         
-            _mainMaterial = GetComponent<MeshRenderer>().material;
-            _mainMaterial.SetTexture("_MainTex", _mainEngine.BrowserTexture);
-            _mainMaterial.SetTextureScale("_MainTex", new Vector2(-1, 1));
+            Browser2D.texture = _mainEngine.BrowserTexture;
+            Browser2D.uvRect=new Rect(0f,0f,1f,-1f);
 
-           
-            mainUIPanel.MainCanvas.worldCamera = _mainCamera;
-        
+            
         
        
 
@@ -126,11 +132,15 @@ public class WebBrowser : MonoBehaviour
         //attach dialogs and querys
         _mainEngine.OnJavaScriptDialog += _mainEngine_OnJavaScriptDialog;
         _mainEngine.OnJavaScriptQuery += _mainEngine_OnJavaScriptQuery;
-        DialogCanvas.worldCamera= _mainCamera;
-        DialogCanvas.gameObject.SetActive(false);
+       
+        DialogPanel.SetActive(false);
+
+         
 
     }
+    #endregion
 
+    #region Queries and dialogs
     //make it thread-safe
     private void _mainEngine_OnJavaScriptQuery(string message)
     {
@@ -159,7 +169,7 @@ public class WebBrowser : MonoBehaviour
         {
             case DialogEventType.Alert:
                 {
-                    DialogCanvas.gameObject.SetActive(true);
+                   DialogPanel.SetActive(true);
                     OkButton.gameObject.SetActive(true);
                     YesButton.gameObject.SetActive(false);
                     NoButton.gameObject.SetActive(false);
@@ -170,7 +180,7 @@ public class WebBrowser : MonoBehaviour
                 }
             case DialogEventType.Confirm:
                 {
-                    DialogCanvas.gameObject.SetActive(true);
+                   DialogPanel.SetActive(true);
                     OkButton.gameObject.SetActive(false);
                     YesButton.gameObject.SetActive(true);
                     NoButton.gameObject.SetActive(true);
@@ -181,7 +191,7 @@ public class WebBrowser : MonoBehaviour
                 }
             case DialogEventType.Prompt:
             {
-                    DialogCanvas.gameObject.SetActive(true);
+                    DialogPanel.SetActive(true);
                     OkButton.gameObject.SetActive(false);
                     YesButton.gameObject.SetActive(true);
                     NoButton.gameObject.SetActive(true);
@@ -194,6 +204,20 @@ public class WebBrowser : MonoBehaviour
         _showDialog = false;
     }
 
+    public void DialogResult(bool result)
+    {
+        DialogPanel.SetActive(false);
+        _mainEngine.SendDialogResponse(result, DialogPrompt.text);
+
+    }
+
+    public void RunJavaScript(string js)
+    {
+        _mainEngine.SendExecuteJSEvent(js);
+    }
+
+    #endregion
+
     #region UI
 
     public void OnNavigate()
@@ -201,11 +225,6 @@ public class WebBrowser : MonoBehaviour
        // MainUrlInput.isFocused
         _mainEngine.SendNavigateEvent(mainUIPanel.UrlField.text,false,false);
     
-    }
-
-    public void RunJavaScript(string js)
-    {
-        _mainEngine.SendExecuteJSEvent(js);
     }
 
     public void GoBackForward(bool forward)
@@ -218,75 +237,40 @@ public class WebBrowser : MonoBehaviour
 
     #endregion
 
-    #region Dialogs
+   
 
-    public void DialogResult(bool result)
+
+    #region Events 
+    public void OnPointerEnter(PointerEventData data)
     {
-        DialogCanvas.gameObject.SetActive(false);
-        _mainEngine.SendDialogResponse(result,DialogPrompt.text);
-       
-    }
-
-    #endregion
-
-
-    #region Events (3D)
-    void OnMouseEnter()
-    {
-      _focused = true;
+        _focused = true;
         mainUIPanel.Show();
+        StartCoroutine("TrackPointer");
     }
 
-    void OnMouseExit()
+   public void OnPointerExit(PointerEventData data)
     {
       _focused = false;
         mainUIPanel.Hide();
+        StopCoroutine("TrackPointer");
     }
 
-    void OnMouseDown()
+    //tracker
+    IEnumerator TrackPointer()
     {
-        
-        if (_mainEngine.Initialized)
+        var _raycaster = GetComponentInParent<GraphicRaycaster>();
+        var _input = FindObjectOfType<StandaloneInputModule>();
+
+        if (_raycaster != null && _input != null&&_mainEngine.Initialized)
         {
-            Vector2 pixelUV = GetScreenCoords();
-
-            if (pixelUV.x > 0)
+            while (Application.isPlaying)
             {
-                SendMouseButtonEvent((int)pixelUV.x,(int)pixelUV.y,MouseButton.Left, MouseEventType.ButtonDown);
-               
-            }
-        }
+                Vector2 localPos = GetScreenCoords(_raycaster,_input);
+                
+                int px = (int)localPos.x;
+                int py = (int)localPos.y;
 
-    }
-
-    
-
-
-    void OnMouseUp()
-    {
-        if (_mainEngine.Initialized)
-        {
-            Vector2 pixelUV = GetScreenCoords();
-
-            if (pixelUV.x > 0)
-            {
-                SendMouseButtonEvent((int)pixelUV.x, (int)pixelUV.y, MouseButton.Left, MouseEventType.ButtonUp);
-            }
-        }
-    }
-
-    void OnMouseOver()
-    {
-        if (_mainEngine.Initialized)
-        {
-            Vector2 pixelUV = GetScreenCoords();
-
-            if (pixelUV.x > 0)
-            {
-                int px = (int) pixelUV.x;
-                int py = (int) pixelUV.y;
-
-                ProcessScrollInput(px, py);
+                ProcessScrollInput(px,py);
 
                 if (posX != px || posY != py)
                 {
@@ -312,44 +296,105 @@ public class WebBrowser : MonoBehaviour
                     _mainEngine.SendMouseEvent(msg);
                 }
 
-                //check other buttons...
-                if(Input.GetMouseButtonDown(1))
-                    SendMouseButtonEvent(px,py,MouseButton.Right, MouseEventType.ButtonDown);
-                if (Input.GetMouseButtonUp(1))
-                    SendMouseButtonEvent(px, py, MouseButton.Right, MouseEventType.ButtonUp);
-                if (Input.GetMouseButtonDown(2))
-                    SendMouseButtonEvent(px, py, MouseButton.Middle, MouseEventType.ButtonDown);
-                if (Input.GetMouseButtonUp(2))
-                    SendMouseButtonEvent(px, py, MouseButton.Middle, MouseEventType.ButtonUp);
+                yield return 0;
             }
         }
+      //  else
+      //      UnityEngine.Debug.LogWarning("Could not find GraphicRaycaster and/or StandaloneInputModule");
+    }
 
-        // Debug.Log(pixelUV);
-  }
+   public void OnPointerDown(PointerEventData data)
+    {
+        
+        if (_mainEngine.Initialized)
+        {
+            var _raycaster = GetComponentInParent<GraphicRaycaster>();
+            var _input = FindObjectOfType<StandaloneInputModule>();
+            Vector2 pixelUV= GetScreenCoords(_raycaster,_input);
+
+            switch (data.button)
+            {
+                case PointerEventData.InputButton.Left:
+                {
+                        SendMouseButtonEvent((int)pixelUV.x, (int)pixelUV.y, MouseButton.Left, MouseEventType.ButtonDown);
+                        break;
+                }
+                case PointerEventData.InputButton.Right:
+                {
+                        SendMouseButtonEvent((int)pixelUV.x, (int)pixelUV.y, MouseButton.Right, MouseEventType.ButtonDown);
+                        break;
+                }
+                case PointerEventData.InputButton.Middle:
+                {
+                        SendMouseButtonEvent((int)pixelUV.x, (int)pixelUV.y, MouseButton.Middle, MouseEventType.ButtonDown);
+                        break;
+                }
+            }
+                  
+            
+        }
+
+    }
+
+
+
+
+    public void OnPointerUp(PointerEventData data)
+    {
+
+        if (_mainEngine.Initialized)
+        {
+            var _raycaster = GetComponentInParent<GraphicRaycaster>();
+            var _input = FindObjectOfType<StandaloneInputModule>();
+
+            Vector2 pixelUV = GetScreenCoords(_raycaster,_input);
+
+            switch (data.button)
+            {
+                case PointerEventData.InputButton.Left:
+                    {
+                        SendMouseButtonEvent((int)pixelUV.x, (int)pixelUV.y, MouseButton.Left, MouseEventType.ButtonUp);
+                        break;
+                    }
+                case PointerEventData.InputButton.Right:
+                    {
+                        SendMouseButtonEvent((int)pixelUV.x, (int)pixelUV.y, MouseButton.Right, MouseEventType.ButtonUp);
+                        break;
+                    }
+                case PointerEventData.InputButton.Middle:
+                    {
+                        SendMouseButtonEvent((int)pixelUV.x, (int)pixelUV.y, MouseButton.Middle, MouseEventType.ButtonUp);
+                        break;
+                    }
+            }
+
+
+        }
+
+    }
+
+   
 
     #endregion
     #region Helpers
 
-    private Vector2 GetScreenCoords()
+    private Vector2 GetScreenCoords(GraphicRaycaster ray,StandaloneInputModule input)
     {
 
-        
-            RaycastHit hit;
-            if (
-                !Physics.Raycast(
-                    _mainCamera.ScreenPointToRay(Input.mousePosition), out hit))
-                return new Vector2(-1f, -1f);
-            Texture tex = _mainMaterial.mainTexture;
+        Vector2 localPos; // Mouse position  
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(transform as RectTransform, Input.mousePosition, ray.eventCamera, out localPos);
 
+        // local pos is the mouse position.
+        RectTransform trns = transform as RectTransform;
+        localPos.y = trns.rect.height - localPos.y;
+        //Debug.Log("x:"+localPos.x+",y:"+localPos.y);
 
-            Vector2 pixelUV = hit.textureCoord;
-            pixelUV.x = (1 - pixelUV.x)*tex.width;
-            pixelUV.y *= tex.height;
-            return pixelUV;
-        
+        //now recalculate to texture
+        localPos.x = (localPos.x * Width) / trns.rect.width;
+        localPos.y = (localPos.y * Height) / trns.rect.height;
 
+        return localPos;
 
-        
     }
 
     private void SendMouseButtonEvent(int x,int y,MouseButton btn,MouseEventType type)
@@ -404,7 +449,15 @@ public class WebBrowser : MonoBehaviour
 
         _mainEngine.UpdateTexture();
 
-       
+        #region 2D mouse
+
+        if (Browser2D != null)
+        {
+            //GetScreenCoords(true);
+        }
+
+
+#endregion
 
         //Dialog
         if (_showDialog)
@@ -427,13 +480,11 @@ public class WebBrowser : MonoBehaviour
             {
                 foreach (char c in Input.inputString)
                 {
-
                     _mainEngine.SendCharEvent((int) c, KeyboardEventType.CharKey);
+
+
                 }
                ProcessKeyEvents();
-
-               
-
 
 
             }
