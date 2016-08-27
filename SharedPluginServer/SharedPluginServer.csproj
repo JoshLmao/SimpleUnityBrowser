@@ -107,6 +107,7 @@
     <Compile Include="CefWorker\CefWorker.cs" />
     <Compile Include="CefWorker\WorkerCefApp.cs" />
     <Compile Include="CefWorker\WorkerCefClient.cs" />
+    <Compile Include="CefWorker\WorkerCefContextMenuHandler.cs" />
     <Compile Include="CefWorker\WorkerCefJSDialogHandler.cs" />
     <Compile Include="CefWorker\WorkerCefLoadHandler.cs" />
     <Compile Include="CefWorker\WorkerCefRenderHandler.cs" />

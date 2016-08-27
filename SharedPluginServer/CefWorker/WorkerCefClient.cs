@@ -22,8 +22,9 @@ namespace SharedPluginServer
         private readonly WorkerCefLoadHandler _loadHandler;
         private readonly WorkerCefRenderHandler _renderHandler;
         private readonly WorkerCefLifespanHandler _lifespanHandler;
-      private readonly WorkerCefWebRequestHandler _requestHandler;
+        private readonly WorkerCefWebRequestHandler _requestHandler;
         private readonly WorkerCefJSDialogHandler _jsDialogHandler;
+        private readonly WorkerCefContextMenuHandler _contextMenuHandler;
 
         private CefWorker _mainWorker;
 
@@ -40,7 +41,7 @@ namespace SharedPluginServer
             _lifespanHandler=new WorkerCefLifespanHandler(_mainWorker);
             _requestHandler=new WorkerCefWebRequestHandler(_mainWorker);
             _jsDialogHandler=new WorkerCefJSDialogHandler(_mainWorker);
-            
+            _contextMenuHandler=new WorkerCefContextMenuHandler();
 
         }
 
@@ -52,6 +53,11 @@ namespace SharedPluginServer
         protected override CefRequestHandler GetRequestHandler()
         {
             return _requestHandler;
+        }
+
+        protected override CefContextMenuHandler GetContextMenuHandler()
+        {
+            return _contextMenuHandler;
         }
 
         protected override CefJSDialogHandler GetJSDialogHandler()
