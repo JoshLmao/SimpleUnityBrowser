@@ -50,6 +50,17 @@ public class WebBrowser : MonoBehaviour
     private string _dialogMessage = "";
     private string _dialogPrompt = "";
     private DialogEventType _dialogEventType;
+    //query - threading
+    private bool _startQuery = false;
+    private string _jsQueryString = "";
+
+    #region JS Query events
+
+    public delegate void JSQuery(string query);
+
+    public event JSQuery OnJSQuery;
+
+    #endregion
 
 
     private Material _mainMaterial;
@@ -101,10 +112,24 @@ public class WebBrowser : MonoBehaviour
         if(!KeepUIVisible)
             mainUIPanel.Hide();
 
-        //attach dialogs
+        //attach dialogs and querys
         _mainEngine.OnJavaScriptDialog += _mainEngine_OnJavaScriptDialog;
+        _mainEngine.OnJavaScriptQuery += _mainEngine_OnJavaScriptQuery;
         DialogCanvas.worldCamera= _mainCamera;
         DialogCanvas.gameObject.SetActive(false);
+
+    }
+
+    //make it thread-safe
+    private void _mainEngine_OnJavaScriptQuery(string message)
+    {
+        _jsQueryString = message;
+        _startQuery = true;
+    }
+
+    public void RespondToJSQuery(string response)
+    {
+        _mainEngine.SendQueryResponse(response);
     }
 
     private void _mainEngine_OnJavaScriptDialog(string message, string prompt, DialogEventType type)
@@ -163,9 +188,18 @@ public class WebBrowser : MonoBehaviour
     public void OnNavigate()
     {
        // MainUrlInput.isFocused
-        _mainEngine.SendNavigateEvent(mainUIPanel.UrlField.text);
+        _mainEngine.SendNavigateEvent(mainUIPanel.UrlField.text,false,false);
     
     }
+
+    public void GoBackForward(bool forward)
+    {
+        if(forward)
+            _mainEngine.SendNavigateEvent("", false, true);
+        else
+            _mainEngine.SendNavigateEvent("", true, false);
+    }
+
     #endregion
 
     #region Dialogs
@@ -245,7 +279,7 @@ public class WebBrowser : MonoBehaviour
                         Type = MouseEventType.Move,
                         X = px,
                         Y = py,
-                        GenericType = MessageLibrary.EventType.Mouse,
+                        GenericType = MessageLibrary.BrowserEventType.Mouse,
                         // Delta = e.Delta,
                         Button = MouseButton.None
                     };
@@ -305,7 +339,7 @@ public class WebBrowser : MonoBehaviour
             Type = type,
             X = x,
             Y = y,
-            GenericType = MessageLibrary.EventType.Mouse,
+            GenericType = MessageLibrary.BrowserEventType.Mouse,
             // Delta = e.Delta,
             Button = btn
         };
@@ -327,7 +361,7 @@ public class WebBrowser : MonoBehaviour
                 Type = MouseEventType.Wheel,
                 X = px,
                 Y = py,
-                GenericType = MessageLibrary.EventType.Mouse,
+                GenericType = MessageLibrary.BrowserEventType.Mouse,
                 Delta = scInt,
                 Button = MouseButton.None
             };
@@ -354,6 +388,15 @@ public class WebBrowser : MonoBehaviour
         if (_showDialog)
         {
             ShowDialog();
+        }
+
+        //Query
+        if (_startQuery)
+        {
+            _startQuery = false;
+            if (OnJSQuery != null)
+                OnJSQuery(_jsQueryString);
+            
         }
         
 

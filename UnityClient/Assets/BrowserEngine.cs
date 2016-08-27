@@ -49,21 +49,18 @@ public class BrowserEngine
 
     #endregion
 
+    #region JSQuery
+
+    public delegate void JavaScriptQuery(string message);
+
+    public event JavaScriptQuery OnJavaScriptQuery;
+    #endregion
+
 
 
     #region Init
     public void InitPlugin(int width,int height, string sharedfilename,int port,string initialURL)
     {
-
-        //Debug.Log(Application.dataPath);
-        //get path in editor
-
-        /*  string[] guids = AssetDatabase.FindAssets("PathToPluginServerMarker");
-
-          foreach (string guid in guids)
-          {
-              Debug.Log(AssetDatabase.GUIDToAssetPath(guid));
-          }*/
           
         Debug.Log(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
@@ -77,9 +74,6 @@ public class BrowserEngine
         string PluginServerPath=AssemblyPath+@"\PluginServer";
 #endif
 
-
-
-        //string PluginServerPath = Application.dataPath + @"\PluginServer\x64";
         Debug.Log("Starting server from:"+PluginServerPath);
 
 
@@ -102,14 +96,8 @@ public class BrowserEngine
             {
                 StartInfo = new System.Diagnostics.ProcessStartInfo()
                 {
-                    WorkingDirectory =
-                //  @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug",
-                //  @"D:\work\unity\StandaloneConnector\SharedPluginServer\release_build\x64",
-                PluginServerPath,
-                    FileName =
-              // @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
-              // @"D:\work\unity\StandaloneConnector\SharedPluginServer\release_build\x64\SharedPluginServer.exe",
-              PluginServerPath + @"\SharedPluginServer.exe",
+                    WorkingDirectory = PluginServerPath,
+                    FileName =PluginServerPath + @"\SharedPluginServer.exe",
                     Arguments = args
 
                 }
@@ -145,19 +133,24 @@ public class BrowserEngine
 
 #region SendEvents
 
-    public void SendNavigateEvent(string url)
+    public void SendNavigateEvent(string url, bool back, bool forward)
     {
         GenericEvent ge = new GenericEvent()
         {
             Type = GenericEventType.Navigate,
-            GenericType = MessageLibrary.EventType.Generic,
+            GenericType = MessageLibrary.BrowserEventType.Generic,
             NavigateUrl = url
         };
+
+        if (back)
+            ge.Type = GenericEventType.GoBack;
+        else if (forward)
+            ge.Type = GenericEventType.GoForward;
 
         EventPacket ep = new EventPacket()
         {
             Event = ge,
-            Type = MessageLibrary.EventType.Generic
+            Type = MessageLibrary.BrowserEventType.Generic
         };
 
         MemoryStream mstr = new MemoryStream();
@@ -175,13 +168,13 @@ public class BrowserEngine
         GenericEvent ge = new GenericEvent()
         {
             Type = GenericEventType.Shutdown,
-            GenericType = MessageLibrary.EventType.Generic
+            GenericType = MessageLibrary.BrowserEventType.Generic
         };
 
         EventPacket ep = new EventPacket()
         {
             Event = ge,
-            Type = MessageLibrary.EventType.Generic
+            Type = MessageLibrary.BrowserEventType.Generic
         };
 
         MemoryStream mstr = new MemoryStream();
@@ -199,7 +192,7 @@ public class BrowserEngine
     {
         DialogEvent de = new DialogEvent()
         {
-            GenericType = MessageLibrary.EventType.Dialog,
+            GenericType = MessageLibrary.BrowserEventType.Dialog,
             success = ok,
             input = dinput
         };
@@ -207,7 +200,7 @@ public class BrowserEngine
         EventPacket ep = new EventPacket
         {
             Event = de,
-            Type = MessageLibrary.EventType.Dialog
+            Type = MessageLibrary.BrowserEventType.Dialog
         };
 
         MemoryStream mstr = new MemoryStream();
@@ -223,6 +216,32 @@ public class BrowserEngine
 
     }
 
+    public void SendQueryResponse(string response)
+    {
+        GenericEvent ge = new GenericEvent()
+        {
+            Type = GenericEventType.JSQueryResponse,
+            GenericType = BrowserEventType.Generic,
+            JsQueryResponse = response
+        };
+
+        EventPacket ep = new EventPacket()
+        {
+            Event = ge,
+            Type = BrowserEventType.Generic
+        };
+
+        MemoryStream mstr = new MemoryStream();
+        BinaryFormatter bf = new BinaryFormatter();
+        bf.Serialize(mstr, ep);
+        byte[] b = mstr.GetBuffer();
+        //
+        lock (_clientSocket.GetStream())
+        {
+            _clientSocket.GetStream().Write(b, 0, b.Length);
+        }
+    }
+
     public void SendCharEvent(int character, KeyboardEventType type)
     {
         
@@ -234,7 +253,7 @@ public class BrowserEngine
         EventPacket ep = new EventPacket()
         {
             Event = keyboardEvent,
-            Type = MessageLibrary.EventType.Keyboard
+            Type = MessageLibrary.BrowserEventType.Keyboard
         };
 
         MemoryStream mstr = new MemoryStream();
@@ -253,7 +272,7 @@ public class BrowserEngine
         EventPacket ep = new EventPacket
         {
             Event = msg,
-            Type = MessageLibrary.EventType.Mouse
+            Type = MessageLibrary.BrowserEventType.Mouse
         };
 
         MemoryStream mstr = new MemoryStream();
@@ -266,6 +285,8 @@ public class BrowserEngine
         }
 
     }
+
+
 
 #endregion
 
@@ -280,7 +301,7 @@ public class BrowserEngine
             if (_bufferBytes == null)
             {
                 long arraySize = _mainTexArray.Length;
-                Debug.Log(arraySize);
+                Debug.Log("Memory array size:"+arraySize);
                 _bufferBytes = new byte[arraySize];
             }
             _mainTexArray.CopyTo(_bufferBytes, 0);
@@ -350,13 +371,25 @@ public class BrowserEngine
             if (ep != null)
             {
                 //main handlers
-                if (ep.Type == MessageLibrary.EventType.Dialog)
+                if (ep.Type == MessageLibrary.BrowserEventType.Dialog)
                 {
                     DialogEvent dev = ep.Event as DialogEvent;
                     if (dev != null)
                     {
                         if (OnJavaScriptDialog != null)
                             OnJavaScriptDialog(dev.Message, dev.DefaultPrompt, dev.Type);
+                    }
+                }
+                if (ep.Type == BrowserEventType.Generic)
+                {
+                    GenericEvent ge = ep.Event as GenericEvent;
+                    if (ge != null)
+                    {
+                        if (ge.Type == GenericEventType.JSQuery)
+                        {
+                            if (OnJavaScriptQuery != null)
+                                OnJavaScriptQuery(ge.JsQuery);
+                        }
                     }
                 }
             }
@@ -369,7 +402,7 @@ public class BrowserEngine
         }
         catch (Exception e)
         {
-            Debug.Log("Error reading from socket");
+            Debug.Log("Error reading from socket,waiting for plugin server to start...");
         }
     }
 

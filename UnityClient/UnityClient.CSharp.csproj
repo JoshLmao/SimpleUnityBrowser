@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="Assets\BrowserEngine.cs" />
     <Compile Include="Assets\BrowserUI.cs" />
+    <Compile Include="Assets\SampleJSQueryHandler.cs" />
     <Compile Include="Assets\WebBrowser.cs" />
   </ItemGroup>
   <ItemGroup>

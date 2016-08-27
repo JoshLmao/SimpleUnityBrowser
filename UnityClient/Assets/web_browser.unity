@@ -153,6 +153,47 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
+--- !u!1 &750373657
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 750373659}
+  - 114: {fileID: 750373658}
+  m_Layer: 0
+  m_Name: SampleJSQueryHandler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &750373658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 750373657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca6470efd44c3f7479110c58e1c38e54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MainBrowser: {fileID: 2125988314}
+--- !u!4 &750373659
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 750373657}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.584817, y: 8.038868, z: 3.6824613}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
 --- !u!1001 &1276970374
 Prefab:
   m_ObjectHideFlags: 0
@@ -191,6 +232,11 @@ Prefab:
     - target: {fileID: 4000010732981246, guid: 39bf41b66f565fa48b3db156956ceac1, type: 2}
       propertyPath: m_RootOrder
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114000012779509150, guid: 39bf41b66f565fa48b3db156956ceac1,
+        type: 2}
+      propertyPath: KeepUIVisible
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 39bf41b66f565fa48b3db156956ceac1, type: 2}
@@ -344,3 +390,9 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
+--- !u!114 &2125988314 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114000012779509150, guid: 39bf41b66f565fa48b3db156956ceac1,
+    type: 2}
+  m_PrefabInternal: {fileID: 1276970374}
+  m_Script: {fileID: 11500000, guid: a09a92a8b67d7db478e44160fa5f5d37, type: 3}
