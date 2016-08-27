@@ -14,6 +14,8 @@ UnityClient/Library
 UnityClient/Temp
 release_build/
 UnityClient/Output/
+UnityClient/Assets/SimpleWebBrowser/PluginServer/x64/debug.log
+UnityClient/Assets/SimpleWebBrowser/PluginServer/x64/log-file.txt
 syntax: glob
 .DS_Store
 *.sln
