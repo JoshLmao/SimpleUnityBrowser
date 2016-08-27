@@ -12,6 +12,8 @@ MessageLibrary/obj/
 UnityClient/Library/CrashedAssetImports.txt
 UnityClient/Library
 UnityClient/Temp
+release_build/
+UnityClient/Output/
 syntax: glob
 .DS_Store
 *.sln

@@ -6,6 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using MessageLibrary;
 using SharedMemory;
+
 using UnityEngine;
 
 public class BrowserEngine
@@ -53,6 +54,35 @@ public class BrowserEngine
     #region Init
     public void InitPlugin(int width,int height, string sharedfilename,int port,string initialURL)
     {
+
+        //Debug.Log(Application.dataPath);
+        //get path in editor
+
+        /*  string[] guids = AssetDatabase.FindAssets("PathToPluginServerMarker");
+
+          foreach (string guid in guids)
+          {
+              Debug.Log(AssetDatabase.GUIDToAssetPath(guid));
+          }*/
+          
+        Debug.Log(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+#if UNITY_EDITOR_64
+        string PluginServerPath = Application.dataPath + @"\PluginServer\x64";
+#else
+        //HACK
+        string s = @"\web_browser_Data\Managed\Assembly-CSharp.dll";
+        string AssemblyPath=System.Reflection.Assembly.GetExecutingAssembly().Location;
+        AssemblyPath = AssemblyPath.Substring(0, AssemblyPath.Length - s.Length);
+        string PluginServerPath=AssemblyPath+@"\PluginServer";
+#endif
+
+
+
+        //string PluginServerPath = Application.dataPath + @"\PluginServer\x64";
+        Debug.Log("Starting server from:"+PluginServerPath);
+
+
         kWidth = width;
         kHeight = height;
         _sharedFileName = sharedfilename;
@@ -65,22 +95,37 @@ public class BrowserEngine
 
 
         string args = BuildParamsString();
-        _pluginProcess = new System.Diagnostics.Process()
+
+        try
         {
-            StartInfo = new System.Diagnostics.ProcessStartInfo()
+            _pluginProcess = new System.Diagnostics.Process()
             {
-                WorkingDirectory =
-                    @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug",
-                FileName =
-                    @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
-                Arguments = args
+                StartInfo = new System.Diagnostics.ProcessStartInfo()
+                {
+                    WorkingDirectory =
+                //  @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug",
+                //  @"D:\work\unity\StandaloneConnector\SharedPluginServer\release_build\x64",
+                PluginServerPath,
+                    FileName =
+              // @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
+              // @"D:\work\unity\StandaloneConnector\SharedPluginServer\release_build\x64\SharedPluginServer.exe",
+              PluginServerPath + @"\SharedPluginServer.exe",
+                    Arguments = args
 
-            }
-        };
+                }
+            };
 
 
 
-        _pluginProcess.Start();
+            _pluginProcess.Start();
+        }
+        catch (Exception ex)
+        {
+            //log the file
+            Debug.Log("FAILED TO START SERVER FROM:"+ PluginServerPath + @"\SharedPluginServer.exe");
+            throw;
+        }
+        
 
 
     }
@@ -94,11 +139,11 @@ public class BrowserEngine
         return ret;
     }
 
-    #endregion
+#endregion
 
 
 
-    #region SendEvents
+#region SendEvents
 
     public void SendNavigateEvent(string url)
     {
@@ -222,7 +267,7 @@ public class BrowserEngine
 
     }
 
-    #endregion
+#endregion
 
     
 

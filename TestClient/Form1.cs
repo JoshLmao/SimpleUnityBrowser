@@ -184,7 +184,7 @@ namespace TestClient
                 }
 
                 // Ensure that no other threads try to use the stream at the same time.
-                    lock (clientSocket.GetStream())
+                   lock (clientSocket.GetStream())
                 {
                     // Start a new asynchronous read into readBuffer.
                     clientSocket.GetStream()

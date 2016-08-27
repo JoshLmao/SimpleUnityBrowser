@@ -1,0 +1,40 @@
+2016-08-27 03:19:38,366 [1] INFO  SharedPluginServer.Program [(null)] - width:512,height:512
+2016-08-27 03:19:38,399 [1] INFO  SharedPluginServer.Program [(null)] - Starting plugin, settings: width:512,height:512,url:https://learn.javascript.ru/uibasic,memfile:7bfad779-4812-48a6-9974-e8326c452a39,port:8888
+2016-08-27 03:19:38,402 [1] INFO  SharedPluginServer.CefWorker [(null)] - ___________INIT___________
+2016-08-27 03:20:00,883 [4] INFO  SharedPluginServer.App [(null)] - ==============SHUTTING DOWN==========
+2016-08-27 03:20:57,637 [1] INFO  SharedPluginServer.Program [(null)] - width:512,height:512
+2016-08-27 03:20:57,671 [1] INFO  SharedPluginServer.Program [(null)] - Starting plugin, settings: width:512,height:512,url:https://learn.javascript.ru/uibasic,memfile:88781fc9-8bb8-4a40-9f20-8d92eec1783a,port:8880
+2016-08-27 03:20:57,675 [1] INFO  SharedPluginServer.CefWorker [(null)] - ___________INIT___________
+2016-08-27 03:21:13,589 [3] INFO  SharedPluginServer.App [(null)] - ==============SHUTTING DOWN==========
+2016-08-27 03:40:32,833 [1] INFO  SharedPluginServer.Program [(null)] - width:512,height:512
+2016-08-27 03:40:32,867 [1] INFO  SharedPluginServer.Program [(null)] - Starting plugin, settings: width:512,height:512,url:https://learn.javascript.ru/uibasic,memfile:947b626f-ec10-4bd8-9057-047d706b0ea5,port:8880
+2016-08-27 03:40:32,871 [1] INFO  SharedPluginServer.CefWorker [(null)] - ___________INIT___________
+2016-08-27 03:40:42,402 [7] INFO  SharedPluginServer.App [(null)] - ==============SHUTTING DOWN==========
+2016-08-27 03:42:54,361 [1] INFO  SharedPluginServer.Program [(null)] - width:512,height:512
+2016-08-27 03:42:54,392 [1] INFO  SharedPluginServer.Program [(null)] - Starting plugin, settings: width:512,height:512,url:https://learn.javascript.ru/uibasic,memfile:75a45ec0-5e0b-49e8-9dab-8afcfd3ea835,port:8881
+2016-08-27 03:42:54,397 [1] INFO  SharedPluginServer.CefWorker [(null)] - ___________INIT___________
+2016-08-27 03:43:01,765 [7] INFO  SharedPluginServer.App [(null)] - ==============SHUTTING DOWN==========
+2016-08-27 03:44:14,003 [1] INFO  SharedPluginServer.Program [(null)] - width:512,height:512
+2016-08-27 03:44:14,035 [1] INFO  SharedPluginServer.Program [(null)] - Starting plugin, settings: width:512,height:512,url:https://learn.javascript.ru/uibasic,memfile:734ed2c3-8a92-45aa-bb8a-b8b82e18fa5a,port:8881
+2016-08-27 03:44:14,040 [1] INFO  SharedPluginServer.CefWorker [(null)] - ___________INIT___________
+2016-08-27 03:44:20,222 [3] INFO  SharedPluginServer.App [(null)] - ==============SHUTTING DOWN==========
+2016-08-27 03:44:28,127 [1] INFO  SharedPluginServer.Program [(null)] - width:512,height:512
+2016-08-27 03:44:28,161 [1] INFO  SharedPluginServer.Program [(null)] - Starting plugin, settings: width:512,height:512,url:https://learn.javascript.ru/uibasic,memfile:d124076e-c8dc-4b88-9a41-f27113f98453,port:8884
+2016-08-27 03:44:28,166 [1] INFO  SharedPluginServer.CefWorker [(null)] - ___________INIT___________
+2016-08-27 03:44:31,479 [3] INFO  SharedPluginServer.App [(null)] - ==============SHUTTING DOWN==========
+2016-08-27 03:45:32,688 [1] INFO  SharedPluginServer.Program [(null)] - width:512,height:512
+2016-08-27 03:45:32,721 [1] INFO  SharedPluginServer.Program [(null)] - Starting plugin, settings: width:512,height:512,url:https://learn.javascript.ru/uibasic,memfile:a2c41e41-70c8-4239-87c9-5613b30cf98b,port:8883
+2016-08-27 03:45:32,726 [1] INFO  SharedPluginServer.CefWorker [(null)] - ___________INIT___________
+2016-08-27 03:45:35,205 [3] INFO  SharedPluginServer.App [(null)] - ==============SHUTTING DOWN==========
+2016-08-27 03:50:51,382 [1] INFO  SharedPluginServer.Program [(null)] - width:512,height:512
+2016-08-27 03:50:51,415 [1] INFO  SharedPluginServer.Program [(null)] - Starting plugin, settings: width:512,height:512,url:https://learn.javascript.ru/uibasic,memfile:f58fe37c-672f-4edb-82a8-20848c4a2dbd,port:8886
+2016-08-27 03:50:51,420 [1] INFO  SharedPluginServer.CefWorker [(null)] - ___________INIT___________
+2016-08-27 03:50:55,131 [3] INFO  SharedPluginServer.App [(null)] - ==============SHUTTING DOWN==========
+2016-08-27 04:10:24,137 [1] INFO  SharedPluginServer.Program [(null)] - width:512,height:512
+2016-08-27 04:10:24,170 [1] INFO  SharedPluginServer.Program [(null)] - Starting plugin, settings: width:512,height:512,url:https://learn.javascript.ru/uibasic,memfile:dca0d624-4af3-4f16-ab29-80a365d90ed4,port:8883
+2016-08-27 04:10:24,174 [1] INFO  SharedPluginServer.CefWorker [(null)] - ___________INIT___________
+2016-08-27 04:10:26,378 [3] INFO  SharedPluginServer.App [(null)] - ==============SHUTTING DOWN==========
+2016-08-27 04:18:53,366 [1] INFO  SharedPluginServer.Program [(null)] - width:512,height:512
+2016-08-27 04:18:53,399 [1] INFO  SharedPluginServer.Program [(null)] - Starting plugin, settings: width:512,height:512,url:https://learn.javascript.ru/uibasic,memfile:ed3881fb-bd2c-49fa-93f8-b5a2e877d820,port:8886
+2016-08-27 04:18:53,403 [1] INFO  SharedPluginServer.CefWorker [(null)] - ___________INIT___________
+2016-08-27 04:19:06,905 [7] INFO  SharedPluginServer.App [(null)] - ==============SHUTTING DOWN==========

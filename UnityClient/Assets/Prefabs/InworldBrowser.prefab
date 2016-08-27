@@ -953,8 +953,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a09a92a8b67d7db478e44160fa5f5d37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Width: 1024
-  Height: 768
+  Width: 512
+  Height: 512
   MemoryFile: 
   RandomMemoryFile: 1
   Port: 8000
