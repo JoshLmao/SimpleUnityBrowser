@@ -5,7 +5,7 @@
 namespace MessageLibrary
 {
 
-    public enum EventType
+    public enum BrowserEventType
     {
         Ping=-1,
         Generic=0,
@@ -17,13 +17,13 @@ namespace MessageLibrary
     [Serializable]
     public class AbstractEvent
     {
-        public EventType GenericType;//?
+        public BrowserEventType GenericType;//?
     }
 
     [Serializable]
     public class EventPacket
     {
-        public EventType Type;
+        public BrowserEventType Type;
 
         public AbstractEvent Event;
     }
@@ -32,7 +32,10 @@ namespace MessageLibrary
     {
         Shutdown=0,
         Navigate=1,
-        ExecuteJS=2,
+        GoBack=2,
+        GoForward=3,
+        ExecuteJS=4
+
         
     }
 

@@ -55,13 +55,13 @@ namespace SharedPluginServer
                 DefaultPrompt = prompt,
                 Message = message,
                 Type = type,
-                GenericType = EventType.Dialog
+                GenericType = BrowserEventType.Dialog
             };
 
             EventPacket ep = new EventPacket
             {
                 Event = msg,
-                Type = EventType.Dialog
+                Type = BrowserEventType.Dialog
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -97,14 +97,14 @@ namespace SharedPluginServer
           
             switch (msg.Type)
             {
-                case EventType.Ping:
+                case BrowserEventType.Ping:
                 {
                         //_controlServer.Client.SendPing();
                         // _pingTimer.
                         break;
                 }
 
-                case EventType.Generic:
+                case BrowserEventType.Generic:
                 {
                     GenericEvent genericEvent=msg.Event as GenericEvent;
                     if (genericEvent != null)
@@ -140,6 +140,14 @@ namespace SharedPluginServer
                                     _mainWorker.Navigate(genericEvent.NavigateUrl);
                                 break;
 
+                                case GenericEventType.GoBack:
+                                    _mainWorker.GoBack();
+                                break;
+
+                                case GenericEventType.GoForward:
+                                        _mainWorker.GoForward();
+                                break;
+
                                 case GenericEventType.ExecuteJS:
                                     _mainWorker.ExecuteJavaScript(genericEvent.JsCode);
                                 break;
@@ -150,7 +158,7 @@ namespace SharedPluginServer
                     break;
                 }
 
-                case EventType.Dialog:
+                case BrowserEventType.Dialog:
                 {
                         DialogEvent de=msg.Event as DialogEvent;
                     if (de != null)
@@ -161,7 +169,7 @@ namespace SharedPluginServer
                     
                 }
 
-                case EventType.Keyboard:
+                case BrowserEventType.Keyboard:
                 {
                         KeyboardEvent keyboardEvent=msg.Event as KeyboardEvent;
                     if (keyboardEvent != null)
@@ -174,7 +182,7 @@ namespace SharedPluginServer
                     }
                     break;
                 }
-                case EventType.Mouse:
+                case BrowserEventType.Mouse:
                     {
                         MouseMessage mouseMessage=msg.Event as MouseMessage;
                         if (mouseMessage != null)

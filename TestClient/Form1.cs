@@ -146,11 +146,11 @@ namespace TestClient
                 EventPacket ep = bf.Deserialize(mstr) as EventPacket;
                 if (ep != null)
                 {
-                   // if (ep.Type == EventType.Ping)
+                   // if (ep.Type == BrowserEventType.Ping)
                     //    SendPing();
                     //  //  MessageBox.Show("PINGBACK");
 
-                    if (ep.Type == EventType.Dialog)
+                    if (ep.Type == BrowserEventType.Dialog)
                     {
                         DialogEvent dev=ep.Event as DialogEvent;
                         switch (dev.Type)
@@ -200,7 +200,7 @@ namespace TestClient
         {
             DialogEvent de = new DialogEvent()
             {
-                GenericType = EventType.Dialog,
+                GenericType = BrowserEventType.Dialog,
                 success = ok,
                 input = ""
             };
@@ -208,7 +208,7 @@ namespace TestClient
             EventPacket ep = new EventPacket
             {
                 Event = de,
-                Type = EventType.Dialog
+                Type = BrowserEventType.Dialog
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -267,7 +267,7 @@ namespace TestClient
                 EventPacket ep = new EventPacket
                 {
                     Event = msg,
-                    Type = EventType.Mouse
+                    Type = BrowserEventType.Mouse
                 };
 
                 MemoryStream mstr = new MemoryStream();
@@ -289,13 +289,13 @@ namespace TestClient
             GenericEvent ge = new GenericEvent()
             {
                 Type = GenericEventType.Shutdown,
-                 GenericType = EventType.Generic
+                 GenericType = BrowserEventType.Generic
             };
 
             EventPacket ep = new EventPacket()
             {
                 Event = ge,
-                Type = EventType.Generic
+                Type = BrowserEventType.Generic
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -316,14 +316,14 @@ namespace TestClient
             GenericEvent ge = new GenericEvent()
             {
                 Type = GenericEventType.Navigate, //could be any
-                GenericType = EventType.Ping,
+                GenericType = BrowserEventType.Ping,
                 
             };
 
             EventPacket ep = new EventPacket()
             {
                 Event = ge,
-                Type = EventType.Ping
+                Type = BrowserEventType.Ping
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -337,19 +337,24 @@ namespace TestClient
             }
         }
 
-        public void SendNavigateEvent(string url)
+        public void SendNavigateEvent(string url,bool back,bool forward)
         {
             GenericEvent ge = new GenericEvent()
             {
                 Type = GenericEventType.Navigate,
-                GenericType = EventType.Generic,
+                GenericType = BrowserEventType.Generic,
                 NavigateUrl = url
             };
+
+            if(back)
+                ge.Type=GenericEventType.GoBack;
+            else if(forward)
+                ge.Type=GenericEventType.GoForward;
 
             EventPacket ep = new EventPacket()
             {
                 Event = ge,
-                Type = EventType.Generic
+                Type = BrowserEventType.Generic
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -369,14 +374,14 @@ namespace TestClient
             GenericEvent ge = new GenericEvent()
             {
                 Type = GenericEventType.ExecuteJS,
-                GenericType = EventType.Generic,
+                GenericType = BrowserEventType.Generic,
                 JsCode= js
             };
 
             EventPacket ep = new EventPacket()
             {
                 Event = ge,
-                Type = EventType.Generic
+                Type = BrowserEventType.Generic
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -402,7 +407,7 @@ namespace TestClient
             EventPacket ep = new EventPacket()
             {
                 Event = keyboardEvent,
-                Type = EventType.Keyboard
+                Type = BrowserEventType.Keyboard
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -424,7 +429,7 @@ namespace TestClient
                 Type=MouseEventType.ButtonDown,
                 X=e.X,
                 Y=e.Y,
-                GenericType = EventType.Mouse
+                GenericType = BrowserEventType.Mouse
             };
 
             SendMouseEvent(msg);
@@ -439,7 +444,7 @@ namespace TestClient
                 X = e.X,
                 Y = e.Y,
                 Delta = e.Delta,
-                GenericType = EventType.Mouse,
+                GenericType = BrowserEventType.Mouse,
                 Button = MouseButton.None
             };
 
@@ -464,7 +469,7 @@ namespace TestClient
                     Type = MouseEventType.Move,
                     X = e.X,
                     Y = e.Y,
-                    GenericType = EventType.Mouse,
+                    GenericType = BrowserEventType.Mouse,
                      Delta = e.Delta,
                     Button = MouseButton.None
                 };
@@ -489,7 +494,7 @@ namespace TestClient
                 Type = MouseEventType.ButtonUp,
                 X = e.X,
                 Y = e.Y,
-                GenericType = EventType.Mouse,
+                GenericType = BrowserEventType.Mouse,
                 Button = MouseButton.None
             };
 
@@ -538,7 +543,7 @@ namespace TestClient
                 Type = MouseEventType.Leave,
                 X = 0,
                 Y = 0,
-                GenericType = EventType.Mouse
+                GenericType = BrowserEventType.Mouse
             };
 
             SendMouseEvent(msg);
@@ -558,7 +563,7 @@ namespace TestClient
         {
             if (e.KeyCode == Keys.Enter)
             {
-                SendNavigateEvent(textBox1.Text);
+                SendNavigateEvent(textBox1.Text,false,false);
             }
         }
 
@@ -566,6 +571,16 @@ namespace TestClient
         {
           //  SendExecuteJSEvent("alert('Hello world');");
           SendPing();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            SendNavigateEvent("", true, false);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            SendNavigateEvent("", false, true);
         }
 
         //protected override void OnMouseWheel()

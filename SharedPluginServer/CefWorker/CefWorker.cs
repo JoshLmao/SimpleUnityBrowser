@@ -69,14 +69,7 @@ namespace SharedPluginServer
 
         public void Init(int width,int height,string starturl)
         {
-            log.Info("___________INIT___________");
-          
-
-
-                
-
-               
-
+            
                RegisterMessageRouter();
 
                 CefWindowInfo cefWindowInfo = CefWindowInfo.Create();
@@ -176,6 +169,16 @@ namespace SharedPluginServer
         public void Navigate(string url)
         {
             _client.Navigate(url);
+        }
+
+        public void GoBack()
+        {
+            _client.GoBack();
+        }
+
+        public void GoForward()
+        {
+            _client.GoForward();
         }
 
         public void ExecuteJavaScript(string jscode)

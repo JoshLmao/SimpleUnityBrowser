@@ -262,14 +262,14 @@ namespace SharedPluginServer.Interprocess
             GenericEvent ge = new GenericEvent()
             {
                 Type = GenericEventType.Navigate, //could be any
-                GenericType = EventType.Ping,
+                GenericType = BrowserEventType.Ping,
 
             };
 
             EventPacket ep = new EventPacket()
             {
                 Event = ge,
-                Type = EventType.Ping
+                Type = BrowserEventType.Ping
             };
 
             MemoryStream mstr = new MemoryStream();

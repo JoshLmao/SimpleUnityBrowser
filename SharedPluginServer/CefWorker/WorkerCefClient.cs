@@ -230,6 +230,18 @@ namespace SharedPluginServer
             _lifespanHandler.MainBrowser.GetMainFrame().LoadUrl(url);
         }
 
+        public void GoBack()
+        {
+            if(_lifespanHandler.MainBrowser.CanGoBack)
+            _lifespanHandler.MainBrowser.GoBack();
+        }
+
+        public void GoForward()
+        {
+            if (_lifespanHandler.MainBrowser.CanGoForward)
+                _lifespanHandler.MainBrowser.GoForward();
+        }
+
 
         #endregion
 
