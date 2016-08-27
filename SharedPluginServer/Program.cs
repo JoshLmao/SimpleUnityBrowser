@@ -1,20 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using MessageLibrary;
 using SharedPluginServer.Interprocess;
 using Xilium.CefGlue;
-using System.Windows;
 
 namespace SharedPluginServer
 {
 
-    //just a glue
+    //Main application
     public class App
     {
         private static readonly log4net.ILog log =
@@ -27,8 +22,12 @@ namespace SharedPluginServer
 
         private CefWorker _mainWorker;
 
-        private System.Windows.Forms.Timer _pingTimer;
-
+        /// <summary>
+        /// App constructor
+        /// </summary>
+        /// <param name="worker">Main CEF worker</param>
+        /// <param name="memServer">Shared memory file</param>
+        /// <param name="commServer">TCP server</param>
         public App(CefWorker worker, SharedMemServer memServer, SocketServer commServer)
         {
             _memServer = memServer;
@@ -37,12 +36,7 @@ namespace SharedPluginServer
 
             _mainWorker.SetMemServer(_memServer);
 
-            /*_pingTimer=new System.Windows.Forms.Timer();
-
-            _pingTimer.Tick += _pingTimer_Tick;
-            _pingTimer.Interval = 5000;
-            _pingTimer.Start();*/
-
+            //attach dialogs and queries
             _mainWorker.OnJSDialog += _mainWorker_OnJSDialog;
             _mainWorker.OnBrowserJSQuery += _mainWorker_OnBrowserJSQuery;
 
@@ -94,27 +88,10 @@ namespace SharedPluginServer
             _controlServer.Client.SendData(mstr.GetBuffer());
         }
 
-        /* private void _pingTimer_Tick(object sender, EventArgs e)
-         {
-             byte[] reply = _controlServer.Client.SendPing();
-             //log.Info("________PING ret:"+reply.Length);
-             try
-             {
-                 MemoryStream mstr = new MemoryStream(reply);
-                 BinaryFormatter bf = new BinaryFormatter();
-                 EventPacket ep = bf.Deserialize(mstr) as EventPacket;
-                 log.Info("________PING ret:" + ep.Type);
-                 //GenericEvent genericEvent = ep.Event as GenericEvent;
-
-
-             }
-             catch (Exception)
-             {
-                 log.Info("_______ERROR");
-
-             }
-         }*/
-
+        /// <summary>
+        /// Main message handler
+        /// </summary>
+        /// <param name="msg">Message from client app</param>
         public void HandleMessage(EventPacket msg)
         {
           
@@ -122,8 +99,7 @@ namespace SharedPluginServer
             {
                 case BrowserEventType.Ping:
                 {
-                        //_controlServer.Client.SendPing();
-                        // _pingTimer.
+                 
                         break;
                 }
 
@@ -258,39 +234,28 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// args:
         /// width,
         /// height,
-        /// initialURL
+        /// initialURL,
+        /// memory file name,
+        /// comm port
         /// </summary>
         [STAThread]
         static void Main(string[] args)
-       // static void Main()
         {
+            //Application.EnableVisualStyles();
+           // Application.SetCompatibleTextRenderingDefault(false);
 
-           
-
-
-            
-          
-
-           
-            
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
-            ////////RUNTIME
+            //////// CEF RUNTIME
             try
             {
                 CefRuntime.Load();
             }
             catch (DllNotFoundException ex)
             {
-                //MessageBox.Show(ex.Message, "Error!");
-                //  return 1;
                 log.ErrorFormat("{0} error", ex.Message);
             }
             catch (CefRuntimeException ex)
             {
                 log.ErrorFormat("{0} error", ex.Message);
-                //  return 2;
             }
             catch (Exception ex)
             {
@@ -312,8 +277,6 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 WindowlessRenderingEnabled = true,
                 LogSeverity = CefLogSeverity.Info,
 
-
-
             };
 
 
@@ -327,20 +290,20 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 log.ErrorFormat("{0} error", ex.Message);
 
             }
+            /////////////
 
             //WARNING: process command line AFTER initialization
 
             int defWidth = 1280;
             int defHeight = 720;
-            string defUrl = "https://learn.javascript.ru/uibasic";
+            string defUrl = "http://www.google.com";
             string defFileName = "MainSharedMem";
             int defPort = 8885;
-            //log.Info("ARGS:" + args.Length);
+         
 
             if (args.Length > 1)
             {
-                
-                  defWidth = Int32.Parse(args[0]);
+                defWidth = Int32.Parse(args[0]);
                  defHeight=Int32.Parse(args[1]);
                 log.Info("width:"+defWidth+",height:"+defHeight);
             }
@@ -357,21 +320,17 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
             CefWorker worker =new CefWorker();
            worker.Init(defWidth,defHeight,defUrl);
-            SharedMemServer _server=new SharedMemServer();
-            _server.Init(defWidth*defHeight*4,defFileName);
+            SharedMemServer server=new SharedMemServer();
+            server.Init(defWidth*defHeight*4,defFileName);
 
            
             SocketServer ssrv=new SocketServer();
             ssrv.Init(defPort);
 
-            var app=new App(worker,_server,ssrv);
-           // var app = new App(null, _server, ssrv);
-
+            var app=new App(worker,server,ssrv);
+          
             Application.Run();
 
-            // Application.Run(new Form1(worker,_server,ssrv));
-
-            //ssrv.Shutdown();
             CefRuntime.Shutdown();
 
         }

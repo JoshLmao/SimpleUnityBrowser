@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+
+
 namespace MessageLibrary
 {
 
@@ -14,6 +16,7 @@ namespace MessageLibrary
 
     }
 
+    //JavaScript dialogs
     [Serializable]
     public class DialogEvent : AbstractEvent
     {

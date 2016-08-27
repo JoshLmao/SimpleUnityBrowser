@@ -85,9 +85,9 @@ namespace TestClient
                 StartInfo = new ProcessStartInfo()
                 {
                     WorkingDirectory =
-                        @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug",
+                        @"D:\work\unity\StandaloneConnector\SharedPluginServerClean\SharedPluginServer\bin\x64\Debug",
                     FileName =
-                        @"D:\work\unity\StandaloneConnector\SharedPluginServer\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
+                        @"D:\work\unity\StandaloneConnector\SharedPluginServerClean\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
                     Arguments = args
                     
                 }
@@ -138,9 +138,7 @@ namespace TestClient
                     // Finish asynchronous read into readBuffer and get number of bytes read.
                     BytesRead = clientSocket.GetStream().EndRead(ar);
                 }
-                // Convert the byte array the message was saved into, minus one for the
-                // Chr(13).
-                // MessageBox.Show("__RECEEIVED:" + BytesRead);
+               
                 MemoryStream mstr = new MemoryStream(readBuffer);
                 BinaryFormatter bf = new BinaryFormatter();
                 EventPacket ep = bf.Deserialize(mstr) as EventPacket;

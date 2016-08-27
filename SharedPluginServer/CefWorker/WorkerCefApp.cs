@@ -1,5 +1,4 @@
 using Xilium.CefGlue;
-using Xilium.CefGlue.Wrapper;
 
 namespace SharedPluginServer
 {

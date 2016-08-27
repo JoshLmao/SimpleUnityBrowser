@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-
-
 using System.Net.Sockets;
-using System.Net;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using MessageLibrary;
 
 
@@ -57,13 +48,7 @@ namespace SharedPluginServer.Interprocess
 
                 do
                 {
-                   
-                   // UserConnection client = new UserConnection(_listener.AcceptTcpClient());
                    DoBeginAcceptTcpClient(_listener,this);
-                   
-
-
-                   // client.OnLineReceived += OnLineReceived;
                    
                 } while (isWorking);
 
@@ -96,8 +81,6 @@ namespace SharedPluginServer.Interprocess
             // Set the event to nonsignaled state.
             tcpClientConnected.Reset();
 
-            // Start to listen for connections from a client.
-           // Console.WriteLine("Waiting for a connection...");
 
             // Accept the connection. 
             // BeginAcceptSocket() creates the accepted socket.
@@ -138,7 +121,6 @@ namespace SharedPluginServer.Interprocess
 
         private static void OnLineReceived(UserConnection sender, byte[] data)
        {
-            //send a message
            try
            {
                 MemoryStream mstr = new MemoryStream(data);
@@ -146,14 +128,12 @@ namespace SharedPluginServer.Interprocess
                 EventPacket ep=bf.Deserialize(mstr) as EventPacket;
                if (ep != null)
                {
-                   //log.Info("_________PACKET:"+ep.Type);
                    OnReceivedMessage?.Invoke(ep);
                }
             }
-           catch (Exception)
+           catch (Exception ex)
            {
-               
-            //   throw;
+               log.Error("Exception in receive:"+ex.Message );
            }
        }
 
@@ -164,7 +144,6 @@ namespace SharedPluginServer.Interprocess
        {
            isWorking = false;
            tcpClientConnected.Set();
-           //_listener.Stop();
        }
 
        ~SocketServer()
@@ -179,12 +158,9 @@ namespace SharedPluginServer.Interprocess
     public class UserConnection
     {
         const int READ_BUFFER_SIZE = 2048;
-        // Overload the new operator to set up a read thread.
         public UserConnection(TcpClient client)
         {
             this.client = client;
-            // This starts the asynchronous read thread.  The data will be saved into
-            // readBuffer.
             this.client.GetStream().BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
         }
 
@@ -193,28 +169,21 @@ namespace SharedPluginServer.Interprocess
 
         public event LineReceive OnLineReceived;
 
-        // This subroutine uses a StreamWriter to send a message to the user.
+       
         public void SendData(byte[] Data)
         {
             //lock ensure that no other threads try to use the stream at the same time.
             lock (client.GetStream())
             {
-                // StreamWriter writer = new StreamWriter(client.GetStream());
-                //writer.Write(Data + (char)13 + (char)10);
-                // Make sure all data is sent now.
-                // writer.Flush();
                 client.GetStream().Write(Data, 0, Data.Length);
             }
         }
 
-        public byte[] SendSync(byte[] data)
+        //unused
+        /*public byte[] SendSync(byte[] data)
         {
             lock (client.GetStream())
             {
-                // StreamWriter writer = new StreamWriter(client.GetStream());
-                //writer.Write(Data + (char)13 + (char)10);
-                // Make sure all data is sent now.
-                // writer.Flush();
                 client.GetStream().Write(data, 0, data.Length);
             }
 
@@ -226,7 +195,7 @@ namespace SharedPluginServer.Interprocess
 
             return readBuffer;
 
-        }
+        }*/
 
         private void StreamReceiver(IAsyncResult ar)
         {
@@ -234,17 +203,13 @@ namespace SharedPluginServer.Interprocess
            
             try
             {
-                // Ensure that no other threads try to use the stream at the same time.
                 lock (client.GetStream())
                 {
                     // Finish asynchronous read into readBuffer and get number of bytes read.
                     BytesRead = client.GetStream().EndRead(ar);
                 }
-                // Convert the byte array the message was saved into, minus one for the
-                // Chr(13).
 
                 OnLineReceived?.Invoke(this, readBuffer);
-                // Ensure that no other threads try to use the stream at the same time.
                 lock (client.GetStream())
                 {
                     // Start a new asynchronous read into readBuffer.

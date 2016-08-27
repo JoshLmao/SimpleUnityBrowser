@@ -17,8 +17,6 @@ namespace SharedPluginServer
         {
            
             OnBrowserQuery?.Invoke(request);
-
-            //callback.Success("OK");
             _lastCallback = callback;
             return true;
         }

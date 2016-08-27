@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MessageLibrary;
+﻿using MessageLibrary;
 using Xilium.CefGlue;
 
 namespace SharedPluginServer
@@ -23,9 +18,6 @@ namespace SharedPluginServer
         protected override bool OnJSDialog(CefBrowser browser, string originUrl, CefJSDialogType dialogType,
             string message_text, string default_prompt_text, CefJSDialogCallback callback, out bool suppress_message)
         {
-            bool success = false;
-            string input = null;
-            //callback.Continue(success, input);
             _currentCallback = callback;
             switch (dialogType)
             {
@@ -41,7 +33,6 @@ namespace SharedPluginServer
 
             }
            
-            //callback.Continue(success, input);
             suppress_message = false;
             return true;
         }

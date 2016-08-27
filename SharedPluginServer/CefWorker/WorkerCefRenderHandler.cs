@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using Xilium.CefGlue;
 
 namespace SharedPluginServer
@@ -64,22 +61,12 @@ namespace SharedPluginServer
         protected override void OnPaint(CefBrowser browser, CefPaintElementType type, CefRectangle[] dirtyRects, IntPtr buffer, int width, int height)
         {
           
-            //hard way
             if (MainBitmap == null)
             {
-                _copysize = width*height*4; //32 bpp*stride(4)
-
-               // var bmp=new Bitmap(width, height, width * 4, PixelFormat.Format32bppRgb, buffer);
-                //Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
-                //bmp.LockBits(rect, ImageLockMode.ReadWrite,
-                    //     PixelFormat.Format32bppRgb);
-
-               // _copysize = bmpData.Stride * MainBitmap.Height
+                _copysize = width*height*4; 
 
                 MainBitmap = new byte[_copysize];
-                
-              
-            }
+             }
 
             CurrentWidth = width;
             CurrentHeight = height;
@@ -88,14 +75,13 @@ namespace SharedPluginServer
 
             if(_memServer!=null)
                 _memServer.WriteBytes(MainBitmap);
-
-
             
         }
 
+        //TODO: use this?
     protected override void OnCursorChange(CefBrowser browser, IntPtr cursorHandle, CefCursorType type, CefCursorInfo customCursorInfo)
         {
-            // MessageBox.Show("CURSOR");
+            
         }
         
         protected override void OnScrollOffsetChanged(CefBrowser browser, double x, double y)

@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using MessageLibrary;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Wrapper;
@@ -14,6 +8,7 @@ using Xilium.CefGlue.Wrapper;
 namespace SharedPluginServer
 {
 
+    //Main CEF worker
     public class CefWorker:IDisposable
     {
         private static readonly log4net.ILog log =
@@ -78,6 +73,12 @@ namespace SharedPluginServer
         }
         #endregion
 
+        /// <summary>
+        /// Initialization
+        /// </summary>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="starturl"></param>
         public void Init(int width,int height,string starturl)
         {
             
@@ -93,18 +94,15 @@ namespace SharedPluginServer
                 cefBrowserSettings.WebSecurity=CefState.Disabled;
 
             _client = new WorkerCefClient(width, height,this);
-            //_client = new WorkerCefClient(1280, 720);
-            //string url = "http://www.reddit.com/";
-
+            
             string url = "http://www.yandex.ru/";
             if (starturl != "")
                 url = starturl;
                 CefBrowserHost.CreateBrowser(cefWindowInfo, _client, cefBrowserSettings, url);
 
-                // MessageBox.Show("INITIALIZED");
-                //Application.Idle += (s, e) => CefRuntime.DoMessageLoopWork();
+                
                 _initialized = true;
-               // _client.OnLoadFinished += _client_OnLoadFinished;
+               
             
         }
 
@@ -112,6 +110,8 @@ namespace SharedPluginServer
         {
             _client.SetMemServer(memServer);
         }
+
+        #region Queries
 
         private void RegisterMessageRouter()
         {
@@ -126,12 +126,10 @@ namespace SharedPluginServer
             _queryHandler=new WorkerCefMessageRouterHandler();
             _queryHandler.OnBrowserQuery += Handler_OnBrowserQuery;
             BrowserMessageRouter.AddHandler(_queryHandler);
-           //log.Info("BrowserMessageRouter created");
         }
 
         private void Handler_OnBrowserQuery(string query)
         {
-          // log.Info("Browser query:"+query);
           OnBrowserJSQuery?.Invoke(query);
 
         }
@@ -140,8 +138,9 @@ namespace SharedPluginServer
         {
             _queryHandler.Callback(resp);
         }
+#endregion
 
-        #region Task
+        #region Task helper
 
         public static void PostTask(CefThreadId threadId, Action action)
         {
@@ -185,12 +184,15 @@ namespace SharedPluginServer
             return _client.GetWidth();
         }
 
+
+
         public void Shutdown()
         {
             _client.Shutdown();
           // 
         }
 
+#region Navigation and controls
         public void Navigate(string url)
         {
             _client.Navigate(url);
@@ -210,7 +212,9 @@ namespace SharedPluginServer
         {
             _client.ExecuteJavaScript(jscode);
         }
+        #endregion
 
+        #region Mouse and keyboard
         public void MouseEvent(int x, int y,bool updown,MouseButton button)
         {
             _client.MouseEvent(x,y,updown,button);
@@ -240,6 +244,6 @@ namespace SharedPluginServer
         {
             _client.MouseWheelEvent(x,y,delta);
         }
-        
+        #endregion
     }
 }

@@ -22,8 +22,6 @@ namespace SharedPluginServer
 
         protected override bool DoClose(CefBrowser browser)
         {
-
-            // return false;
             return false;
         }
 

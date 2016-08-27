@@ -1,5 +1,3 @@
-using System.Drawing;
-using System.Windows.Forms;
 using MessageLibrary;
 using Xilium.CefGlue;
 
@@ -17,7 +15,7 @@ namespace SharedPluginServer
         //display? - status,console, etc
         //render+,
         //load+,
-        //dialog - later
+        //dialog +
 
         private readonly WorkerCefLoadHandler _loadHandler;
         private readonly WorkerCefRenderHandler _renderHandler;
@@ -37,7 +35,6 @@ namespace SharedPluginServer
             _mainWorker = mainCefWorker;
             _renderHandler = new WorkerCefRenderHandler(windowWidth, windowHeight);
             _loadHandler = new WorkerCefLoadHandler();
-           // _loadHandler.OnLoadFinished += _loadHandler_OnLoadFinished;
             _lifespanHandler=new WorkerCefLifespanHandler(_mainWorker);
             _requestHandler=new WorkerCefWebRequestHandler(_mainWorker);
             _jsDialogHandler=new WorkerCefJSDialogHandler(_mainWorker);
@@ -73,16 +70,9 @@ namespace SharedPluginServer
         }
 
 
-      
-
-       // private void _loadHandler_OnLoadFinished(int StatusCode)
-        //{
-         //   OnLoadFinished?.Invoke(StatusCode);
-        //}
 
         protected override CefRenderHandler GetRenderHandler()
         {
-            //  MessageBox.Show("GetRenderHandler");
             return _renderHandler;
         }
 
