@@ -26,22 +26,6 @@ Import the package to Unity. There will be a few folders in Assets/SimpleWebBrow
 #else
 #if UNITY_EDITOR_32
         string PluginServerPath = Application.dataPath + @"\SimpleWebBrowser\PluginServer\x86";
-#else
 
-
-        //HACK
-        string AssemblyPath=System.Reflection.Assembly.GetExecutingAssembly().Location;
-        //log this for error handling
-        Debug.Log("Assembly path:"+AssemblyPath);
-
-        AssemblyPath = Path.GetDirectoryName(AssemblyPath); //Managed
-      
-        AssemblyPath = Directory.GetParent(AssemblyPath).FullName; //<project>_Data
-        AssemblyPath = Directory.GetParent(AssemblyPath).FullName;//required
-
-        string PluginServerPath=AssemblyPath+@"\PluginServer";
-#endif
-#endif
 
 ```
-
