@@ -36,18 +36,26 @@ namespace SimpleWebBrowser
 
 
 
-        [Header("UI settings")] public BrowserUI mainUIPanel;
+        [Header("UI settings")]
+        [SerializeField]
+        public BrowserUI mainUIPanel;
 
         public bool KeepUIVisible = false;
 
         public Camera MainCamera;
 
-        [Header("Dialog settings")] public Canvas DialogCanvas;
-
+        [Header("Dialog settings")]
+        [SerializeField]
+        public Canvas DialogCanvas;
+        [SerializeField]
         public Text DialogText;
+        [SerializeField]
         public Button OkButton;
+        [SerializeField]
         public Button YesButton;
+        [SerializeField]
         public Button NoButton;
+        [SerializeField]
         public InputField DialogPrompt;
 
         //dialog states - threading

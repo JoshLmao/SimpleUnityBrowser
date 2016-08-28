@@ -9,11 +9,15 @@ namespace SimpleWebBrowser
 
     public class BrowserUI : MonoBehaviour
     {
-
+        [SerializeField]
         public Canvas MainCanvas = null;
+        [SerializeField]
         public InputField UrlField;
+        [SerializeField]
         public Image Background;
+        [SerializeField]
         public Button Back;
+        [SerializeField]
         public Button Forward;
 
 

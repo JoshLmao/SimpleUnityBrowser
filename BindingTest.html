@@ -5,7 +5,6 @@
 
 // Send a query to the browser process.
 function sendMessage() {
-  // Results in a call to the OnQuery method in binding_test.cpp
   window.cefQuery({
     request: 'BindingTest:' + document.getElementById("message").value,
     onSuccess: function(response) {

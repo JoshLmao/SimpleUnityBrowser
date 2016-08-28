@@ -37,19 +37,29 @@ namespace SimpleWebBrowser
         #endregion
 
 
-        [Header("2D setup")] public RawImage Browser2D = null;
+        [Header("2D setup")]
+        [SerializeField]
+        public RawImage Browser2D = null;
 
 
-        [Header("UI settings")] public BrowserUI mainUIPanel;
+        [Header("UI settings")]
+        [SerializeField]
+        public BrowserUI mainUIPanel;
 
         public bool KeepUIVisible = false;
 
-        [Header("Dialog settings")] public GameObject DialogPanel;
-
+        [Header("Dialog settings")]
+        [SerializeField]
+        public GameObject DialogPanel;
+        [SerializeField]
         public Text DialogText;
+        [SerializeField]
         public Button OkButton;
+        [SerializeField]
         public Button YesButton;
+        [SerializeField]
         public Button NoButton;
+        [SerializeField]
         public InputField DialogPrompt;
 
         //dialog states - threading
