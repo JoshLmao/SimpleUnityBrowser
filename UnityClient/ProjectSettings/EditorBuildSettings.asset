@@ -6,4 +6,4 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/web_browser.unity
+    path: Assets/SimpleWebBrowser/Demo/web_browser.unity
