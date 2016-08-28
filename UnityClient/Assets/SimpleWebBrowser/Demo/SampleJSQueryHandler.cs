@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using SimpleWebBrowser;
 
 public class SampleJSQueryHandler : MonoBehaviour {
 
