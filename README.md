@@ -9,7 +9,7 @@ This is a simple embedded browser plugin. It is based on CefGlue, and using a ba
 
 ## Basic setup ##
 
-Import the package to Unity. There will be a few folders in *Assets/SimpleWebBrowser*. You can move/rename all of them, but in case of *Assets/SimpleWebBrowser/PluginServer* you will need to change the runtime and deployment paths in *Scripts/BrowserEngine.cs* and in *Editor/BrowserPostBuild.cs*:
+Import the [package](https://bitbucket.org/vitaly_chashin/simpleunitybrowser/downloads) to Unity. There will be a few folders in *Assets/SimpleWebBrowser*. You can move/rename all of them, but in case of *Assets/SimpleWebBrowser/PluginServer* you will need to change the runtime and deployment paths in *Scripts/BrowserEngine.cs* and in *Editor/BrowserPostBuild.cs*:
 
 
 ```
@@ -44,3 +44,92 @@ The package contains two demo scenes, for the inworld and canvas browser; you ca
 
 2D browser setup is almost the same, except the Browser2D raw image texture setting, which is the base texture for browser.
 
+##Deployment##
+
+The plugin works for Win32/64, both in editor and in app. The post-build step is automated, it creates a folder named *PluginServer* in your output folder. You can change this, for example, put the *PluginServer* into the Data folder, but in such case you need to change the deployment paths (see Basic Setup).
+
+##JavaScript integration##
+Currently you can execute any JS code in the browser window by calling *WebBrowser.RunJavaScript(string js)* and send the message from the web page (see *Demo/SampleJSQueryHandler.cs*). On JavaScript side, you need code like this:
+
+
+```
+#!js
+
+// Send a query to the browser process.
+function sendMessage() {
+  window.cefQuery({
+    request: 'BindingTest:' + document.getElementById("message").value,
+    onSuccess: function(response) {
+      document.getElementById('result').value = 'Response: '+response;
+    },
+    onFailure: function(error_code, error_message) {}
+  });
+}
+```
+See *BindingTest.html* for an example.
+
+
+#Building the PluginServer from the repository#
+
+You can build the plugin server from scratch, for example, if you want to change something in communication or page rendering.
+
+##Folder structure##
+
+* MessageLibrary - an implementation of communication protocol
+* packages - nuget folder
+* SharedPluginServer - the main project
+* TestClient - WinForms client for tests. Warning - the code is not cleaned up, not commented, etc.
++ third_party - prebuilt libraries used in project
+    * cef_64 - CEF x64 runtime
+    * cef_86 - CEF x86 runtime
+    * SharedMemory_86 - SharedMemory.dll for x86 builds
+    * SharedMemory_86_Unity - SharedMemory.dll for Unity x86
+    * SharedMemory_Unity - SharedMemory for Unity x64
+    * log4net.dll
+    * SharedMemory.dll - the base x64 SharedMemory realization
+    * Xilium.CefGlue.dll
+* UnityClient - the main Unity project.
+
+#Building the main solution#
+
+In general, just build it. By default it set to *Debug/x64*; in case of building it for x86, you need to remove the references to *third_party\SharedMemory.dll* from *SharedPluginServer* and *TestClient*, and add the references to *third_party\SharedMemory_86\SharedMemory.dll*.
+
+#Testing and debugging#
+
+Set the *TestClient* as the startup project. Change the path to *SharedPluginServer* in *Form1.cs*:
+
+```
+#!c#
+Process pluginProcess = new Process()
+            {
+                StartInfo = new ProcessStartInfo()
+                {
+                    WorkingDirectory =
+                        //  @"D:\work\unity\StandaloneConnector\SharedPluginServerClean\UnityClient\Output\x86\PluginServer",
+                        @"D:\work\unity\StandaloneConnector\SimpleUnityBrowser\SharedPluginServer\bin\x64\Debug",
+                    FileName =
+                     //@"D:\work\unity\StandaloneConnector\SharedPluginServerClean\UnityClient\Output\x86\PluginServer\SharedPluginServer.exe",
+                        @"D:\work\unity\StandaloneConnector\SimpleUnityBrowser\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
+                    Arguments = args
+                    
+                }
+            };
+
+```
+
+Copy the CEF runtime from the appropriate folder in *third_party* to the *SharedPluginServer* output folder, and run the *TestClient*. It may crash for the first time (when Windows asks for network access), but after that it should work fine.
+
+#Notes#
+
+##Third-party libraries##
+
+* [Xilium.CefGlue](http://xilium.bitbucket.org/cefglue/)
+* [log4net](https://www.nuget.org/packages/log4net/)
+* [SharedMemory](https://github.com/spazzarama/SharedMemory)
+
+##TODOs##
+
+* Support for Mac/Linux
+* Better JS integration
+* General testing/bugfixing
+* Some ideas about Android/iOS/WebGL.
