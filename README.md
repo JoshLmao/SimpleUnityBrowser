@@ -9,7 +9,7 @@ This is a simple embedded browser plugin. It is based on CefGlue, and using a ba
 
 ## Basic setup ##
 
-Import the package to Unity. There will be a few folders in Assets/SimpleWebBrowser. You can move/rename all of them, but in case of Assets/SimpleWebBrowser/PluginServer you will need to change the runtime and deployment paths in Scripts/BrowserEngine.cs and in Editor/BrowserPostBuild.cs:
+Import the package to Unity. There will be a few folders in *Assets/SimpleWebBrowser*. You can move/rename all of them, but in case of *Assets/SimpleWebBrowser/PluginServer* you will need to change the runtime and deployment paths in *Scripts/BrowserEngine.cs* and in *Editor/BrowserPostBuild.cs*:
 
 
 ```
@@ -29,3 +29,18 @@ Import the package to Unity. There will be a few folders in Assets/SimpleWebBrow
 
 
 ```
+
+The package contains two demo scenes, for the inworld and canvas browser; you can use them as a reference, or just drag one of the prefabs to the scene.
+ 
+##Settings ##
+
+![browser_settings.png](https://bitbucket.org/repo/xLMGXM/images/2087941195-browser_settings.png)
+
+* Width and height - width and height of the browser texture.
+* Memory file and Port - in general, you can keep them random. Memory file is the name of a shared memory file, which is used to send the texture data, and port is a TCP port for the communication between browser and plugin. In case of random, memory file will be a random GUID, and a port will be between 8000 and 9000. But you can set them manually, if you want.
+* Initial URL - obviously, the initial browser URL.
+* UI settings - settings for the main browser controls. You can customize them the way you like, changing they appearance in editor and behaviour in BrowserUI.cs. 
+* Dialog settings - same as UI, but for modal dialogs.
+
+2D browser setup is almost the same, except the Browser2D raw image texture setting, which is the base texture for browser.
+
