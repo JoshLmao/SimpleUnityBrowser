@@ -104,6 +104,29 @@ namespace SimpleWebBrowser
 
         #region Initialization
 
+        //why Unity does not store the links in package?
+        void InitPrefabLinks()
+        {
+            if (Browser2D == null)
+                Browser2D = gameObject.GetComponent<RawImage>();
+            if (mainUIPanel == null)
+                mainUIPanel = gameObject.transform.FindChild("MainUI").gameObject.GetComponent<BrowserUI>();
+            if (DialogPanel == null)
+                DialogPanel = gameObject.transform.FindChild("MessageBox").gameObject;
+            if (DialogText == null)
+                DialogText = DialogPanel.transform.FindChild("MessageText").gameObject.GetComponent<Text>();
+            if (OkButton == null)
+                OkButton = DialogPanel.transform.FindChild("OK").gameObject.GetComponent<Button>();
+            if (YesButton == null)
+                YesButton = DialogPanel.transform.FindChild("Yes").gameObject.GetComponent<Button>();
+            if (NoButton == null)
+                NoButton = DialogPanel.transform.FindChild("No").gameObject.GetComponent<Button>();
+            if (DialogPrompt == null)
+                DialogPrompt = DialogPanel.transform.FindChild("Prompt").gameObject.GetComponent<InputField>();
+
+        }
+
+
         void Awake()
         {
             _mainEngine = new BrowserEngine();
@@ -119,7 +142,7 @@ namespace SimpleWebBrowser
                 Port = 8000 + r.Next(1000);
             }
 
-
+           
 
             _mainEngine.InitPlugin(Width, Height, MemoryFile, Port, InitialURL);
         }
@@ -127,6 +150,9 @@ namespace SimpleWebBrowser
 
         void Start()
         {
+            InitPrefabLinks();
+            mainUIPanel.InitPrefabLinks();
+
             _mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
 
             Browser2D.texture = _mainEngine.BrowserTexture;

@@ -93,6 +93,26 @@ namespace SimpleWebBrowser
         private int posY = 0;
 
 
+        //why Unity does not store the links in package?
+        void InitPrefabLinks()
+        {
+            if (mainUIPanel == null)
+                mainUIPanel = gameObject.transform.FindChild("MainUI").gameObject.GetComponent<BrowserUI>();
+            if (DialogCanvas == null)
+                DialogCanvas = gameObject.transform.FindChild("MessageBox").gameObject.GetComponent<Canvas>();
+            if (DialogText == null)
+                DialogText = DialogCanvas.transform.FindChild("MessageText").gameObject.GetComponent<Text>();
+            if (OkButton == null)
+                OkButton = DialogCanvas.transform.FindChild("OK").gameObject.GetComponent<Button>();
+            if (YesButton == null)
+                YesButton = DialogCanvas.transform.FindChild("Yes").gameObject.GetComponent<Button>();
+            if (NoButton == null)
+                NoButton = DialogCanvas.transform.FindChild("No").gameObject.GetComponent<Button>();
+            if (DialogPrompt == null)
+                DialogPrompt = DialogCanvas.transform.FindChild("Prompt").gameObject.GetComponent<InputField>();
+
+        }
+
         void Awake()
         {
             _mainEngine = new BrowserEngine();
@@ -116,6 +136,9 @@ namespace SimpleWebBrowser
         // Use this for initialization
         void Start()
         {
+            InitPrefabLinks();
+            mainUIPanel.InitPrefabLinks();
+
             if (MainCamera == null)
             {
                 MainCamera = Camera.main;

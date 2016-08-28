@@ -24,6 +24,29 @@ namespace SimpleWebBrowser
         [HideInInspector] public bool KeepUIVisible = false;
 
 
+        public void InitPrefabLinks()
+        {
+            //3D
+            if (MainCanvas == null)
+                MainCanvas = gameObject.GetComponent<Canvas>();
+
+            if (UrlField == null)
+                UrlField = gameObject.transform.FindChild("UrlField").GetComponent<InputField>();
+            if (Background == null)
+            {
+                //2d
+                Background = gameObject.GetComponent<Image>();
+                //3d
+                if (Background == null)
+                    Background = gameObject.transform.FindChild("Background").gameObject.GetComponent<Image>();
+            }
+            if (Back == null)
+                Back = gameObject.transform.FindChild("Back").gameObject.GetComponent<Button>();
+            if (Forward == null)
+                Forward = gameObject.transform.FindChild("Forward").gameObject.GetComponent<Button>();
+        }
+
+
 
 
         public void Show()
