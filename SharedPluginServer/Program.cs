@@ -242,8 +242,39 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         static void Main(string[] args)
         {
             //Application.EnableVisualStyles();
-           // Application.SetCompatibleTextRenderingDefault(false);
+            // Application.SetCompatibleTextRenderingDefault(false);
 
+            //WARNING: process command line AFTER initialization
+
+            int defWidth = 1280;
+            int defHeight = 720;
+            string defUrl = "http://www.google.com";
+            string defFileName = "MainSharedMem";
+            int defPort = 8885;
+#if USE_ARGS
+            if (args[0] != "--type=renderer")
+            {
+                if (args.Length > 1)
+                {
+                    defWidth = Int32.Parse(args[0]);
+                    defHeight = Int32.Parse(args[1]);
+                    log.Info("width:" + defWidth + ",height:" + defHeight);
+                }
+                if (args.Length > 2)
+                    defUrl = args[2];
+                if (args.Length > 3)
+                    defFileName = args[3];
+                if (args.Length > 4)
+                    defPort = Int32.Parse(args[4]);
+            }
+#endif
+            log.InfoFormat("Starting plugin, settings: width:{0},height:{1},url:{2},memfile:{3},port:{4}",
+                defWidth, defHeight, defUrl, defFileName, defPort);
+
+            try
+            {
+
+            
             //////// CEF RUNTIME
             try
             {
@@ -263,8 +294,38 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
             }
 
-            var cefMainArgs = new CefMainArgs(new string[0]);
-            var cefApp = new WorkerCefApp();
+
+
+            if (args.Length > 0)
+            {
+                string msg = "";
+                foreach (var s in args)
+                {
+                    msg = msg + ";" + s;
+                }
+                log.Info("ARGS:" + msg);
+
+            }
+
+            // Array.Resize(ref args,args.Length+1);
+
+            //  args[args.Length-1]
+
+            //   var cefMainArgs = new CefMainArgs(new string[] { "--enable-media-stream"});
+            CefMainArgs cefMainArgs;
+            if (args.Length>0&&args[0] != "--type=renderer")
+            {
+              
+                //cefMainArgs = new CefMainArgs(new string[] { "--enable-media-stream" });
+                cefMainArgs = new CefMainArgs(args);
+            }
+            else
+            {
+                cefMainArgs = new CefMainArgs(args);
+            }
+            
+                //cefMainArgs.
+                var cefApp = new WorkerCefApp();
             if (CefRuntime.ExecuteProcess(cefMainArgs, cefApp) != -1)
             {
                 log.ErrorFormat("CefRuntime could not the secondary process.");
@@ -290,32 +351,14 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 log.ErrorFormat("{0} error", ex.Message);
 
             }
-            /////////////
-
-            //WARNING: process command line AFTER initialization
-
-            int defWidth = 1280;
-            int defHeight = 720;
-            string defUrl = "http://www.google.com";
-            string defFileName = "MainSharedMem";
-            int defPort = 8885;
-         
-
-            if (args.Length > 1)
-            {
-                defWidth = Int32.Parse(args[0]);
-                 defHeight=Int32.Parse(args[1]);
-                log.Info("width:"+defWidth+",height:"+defHeight);
+                /////////////
             }
-            if (args.Length > 2)
-                defUrl = args[2];
-            if (args.Length > 3)
-                defFileName = args[3];
-            if (args.Length > 4)
-                defPort = Int32.Parse(args[4]);
+            catch (Exception ex)
+            {
+                log.Info("EXCEPTION ON CEF INITIALIZATION:"+ex.Message+"\n"+ex.StackTrace);
+                throw;
+            }
 
-            log.InfoFormat("Starting plugin, settings: width:{0},height:{1},url:{2},memfile:{3},port:{4}",
-                defWidth,defHeight,defUrl,defFileName,defPort);
 
 
             CefWorker worker =new CefWorker();

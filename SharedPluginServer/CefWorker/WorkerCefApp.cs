@@ -28,11 +28,15 @@ namespace SharedPluginServer
         {
             if (string.IsNullOrEmpty(processType))
             {
+               // commandLine.AppendSwitch("enable-webrtc");
                 commandLine.AppendSwitch("disable-gpu");
                 commandLine.AppendSwitch("disable-gpu-compositing");
                 commandLine.AppendSwitch("enable-begin-frame-scheduling");
                 commandLine.AppendSwitch("disable-smooth-scrolling");
+               
+               
             }
+            //commandLine.AppendArgument("--enable-media-stream");
         }
     }
 }

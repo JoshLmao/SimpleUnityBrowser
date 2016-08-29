@@ -64,9 +64,11 @@ namespace TestClient
         public void Init()
         {
 
-
-
-            string args = pictureBox1.Width.ToString() + " " + pictureBox1.Height.ToString()+" ";
+             string args = "--enable-media-stream";
+           // string args = "";
+#if USE_ARGS
+           
+            args =args+ pictureBox1.Width.ToString() + " " + pictureBox1.Height.ToString()+" ";
             args = args + "http://www.google.ru"+" ";
             Guid memid = Guid.NewGuid();
 
@@ -77,8 +79,8 @@ namespace TestClient
 
          
             args = args + port.ToString();
+#endif
 
-           
 
             Process pluginProcess = new Process()
             {
@@ -119,11 +121,13 @@ namespace TestClient
 
             //Receive
             this.clientSocket.GetStream().BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
-
+#if USE_ARGS
             _texture = new Bitmap(pictureBox1.Width, pictureBox1.Width);
-           // int defWidth = 1280;
-           // int defHeight = 720;
-           // _texture = new Bitmap(defWidth, defHeight);
+#else
+            int defWidth = 1280;
+            int defHeight = 720;
+            _texture = new Bitmap(defWidth, defHeight);
+#endif
             Application.Idle += Application_Idle;
         }
 

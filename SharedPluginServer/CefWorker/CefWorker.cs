@@ -92,6 +92,7 @@ namespace SharedPluginServer
                 cefBrowserSettings.CaretBrowsing=CefState.Enabled;
                 cefBrowserSettings.TabToLinks=CefState.Enabled;
                 cefBrowserSettings.WebSecurity=CefState.Disabled;
+                cefBrowserSettings.WebGL=CefState.Enabled;
 
             _client = new WorkerCefClient(width, height,this);
             
