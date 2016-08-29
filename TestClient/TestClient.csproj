@@ -77,9 +77,8 @@
       <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SharedMemory, Version=1.0.1.0, Culture=neutral, PublicKeyToken=3c6f10d5f3df8ab7, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\third_party\SharedMemory.dll</HintPath>
+    <Reference Include="SharedMemory">
+      <HintPath>..\third_party\SharedMemory_86\SharedMemory.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

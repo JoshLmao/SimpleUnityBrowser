@@ -6,11 +6,12 @@ namespace SharedPluginServer
     {
         private readonly WorkerCefRenderProcessHandler _renderProcessHandler;
 
-       
+        private bool _enableWebRtc = false;
 
-        public WorkerCefApp()
+        public WorkerCefApp(bool enableWebRtc)
         {
             _renderProcessHandler=new WorkerCefRenderProcessHandler();
+            _enableWebRtc = enableWebRtc;
 
         }
 
@@ -33,8 +34,12 @@ namespace SharedPluginServer
                 commandLine.AppendSwitch("disable-gpu-compositing");
                 commandLine.AppendSwitch("enable-begin-frame-scheduling");
                 commandLine.AppendSwitch("disable-smooth-scrolling");
-               
-               
+               if (_enableWebRtc)
+                {
+                    commandLine.AppendSwitch("enable-media-stream", "true");
+                   
+                }
+
             }
             //commandLine.AppendArgument("--enable-media-stream");
         }

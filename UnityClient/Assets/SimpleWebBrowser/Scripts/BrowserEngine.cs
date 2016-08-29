@@ -47,6 +47,7 @@ namespace SimpleWebBrowser
         private string _sharedFileName;
         private int _port;
         private string _initialURL;
+        private bool _enableWebRTC;
 
         #endregion
 
@@ -70,7 +71,7 @@ namespace SimpleWebBrowser
 
         #region Init
 
-        public void InitPlugin(int width, int height, string sharedfilename, int port, string initialURL)
+        public void InitPlugin(int width, int height, string sharedfilename, int port, string initialURL,bool enableWebRTC)
         {
 
             //Initialization (for now) requires a predefined path to PluginServer,
@@ -111,6 +112,7 @@ namespace SimpleWebBrowser
             _sharedFileName = sharedfilename;
             _port = port;
             _initialURL = initialURL;
+            _enableWebRTC = enableWebRTC;
 
             if (BrowserTexture == null)
                 BrowserTexture = new Texture2D(kWidth, kHeight, TextureFormat.BGRA32, false);
@@ -157,6 +159,12 @@ namespace SimpleWebBrowser
             ret = ret + _initialURL + " ";
             ret = ret + _sharedFileName + " ";
             ret = ret + _port.ToString();
+
+            if (_enableWebRTC)
+                ret = ret + " 1";
+            else
+                ret = ret + " 0";
+
             return ret;
         }
 

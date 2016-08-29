@@ -233,6 +233,11 @@ Prefab:
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 114000013142423658, guid: 39bf41b66f565fa48b3db156956ceac1,
+        type: 2}
+      propertyPath: EnableWebRTC
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 39bf41b66f565fa48b3db156956ceac1, type: 2}
   m_IsPrefabParent: 0

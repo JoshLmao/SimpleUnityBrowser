@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define USE_ARGS
+
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
@@ -236,7 +238,8 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// height,
         /// initialURL,
         /// memory file name,
-        /// comm port
+        /// comm port,
+        /// WebRTC?1:0
         /// </summary>
         [STAThread]
         static void Main(string[] args)
@@ -245,13 +248,27 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             // Application.SetCompatibleTextRenderingDefault(false);
 
             //WARNING: process command line AFTER initialization
+            log.Info("===============START================");
+
+           // if (args.Length > 0)
+            {
+                string msg = "";
+                foreach (var s in args)
+                {
+                    msg = msg + ";" + s;
+                }
+                log.Info("ARGS:" + msg);
+
+            }
+            //args = new string[] { "--enable-media-stream" };
 
             int defWidth = 1280;
             int defHeight = 720;
-            string defUrl = "http://www.google.com";
+            //string defUrl = "http://www.google.com";
+            string defUrl = "http://test.webrtc.org";
             string defFileName = "MainSharedMem";
             int defPort = 8885;
-#if USE_ARGS
+            bool useWebRTC = false;
             if (args[0] != "--type=renderer")
             {
                 if (args.Length > 1)
@@ -266,8 +283,11 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                     defFileName = args[3];
                 if (args.Length > 4)
                     defPort = Int32.Parse(args[4]);
+                if(args.Length>5)
+                    if (args[5] == "1")
+                        useWebRTC = true;
             }
-#endif
+
             log.InfoFormat("Starting plugin, settings: width:{0},height:{1},url:{2},memfile:{3},port:{4}",
                 defWidth, defHeight, defUrl, defFileName, defPort);
 
@@ -296,36 +316,11 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
 
 
-            if (args.Length > 0)
-            {
-                string msg = "";
-                foreach (var s in args)
-                {
-                    msg = msg + ";" + s;
-                }
-                log.Info("ARGS:" + msg);
-
-            }
-
-            // Array.Resize(ref args,args.Length+1);
-
-            //  args[args.Length-1]
-
-            //   var cefMainArgs = new CefMainArgs(new string[] { "--enable-media-stream"});
-            CefMainArgs cefMainArgs;
-            if (args.Length>0&&args[0] != "--type=renderer")
-            {
-              
-                //cefMainArgs = new CefMainArgs(new string[] { "--enable-media-stream" });
+           
+                CefMainArgs cefMainArgs;
                 cefMainArgs = new CefMainArgs(args);
-            }
-            else
-            {
-                cefMainArgs = new CefMainArgs(args);
-            }
-            
-                //cefMainArgs.
-                var cefApp = new WorkerCefApp();
+                var cefApp = new WorkerCefApp(useWebRTC);
+
             if (CefRuntime.ExecuteProcess(cefMainArgs, cefApp) != -1)
             {
                 log.ErrorFormat("CefRuntime could not the secondary process.");

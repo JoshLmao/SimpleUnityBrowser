@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define USE_ARGS
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -61,15 +63,17 @@ namespace TestClient
            Init();
         }
 
+
         public void Init()
         {
 
-             string args = "--enable-media-stream";
-           // string args = "";
+
+            //string args = "--enable-media-stream";
+            string args = "";
 #if USE_ARGS
            
             args =args+ pictureBox1.Width.ToString() + " " + pictureBox1.Height.ToString()+" ";
-            args = args + "http://www.google.ru"+" ";
+            args = args + "http://test.webrtc.org"+" ";
             Guid memid = Guid.NewGuid();
 
             memfile = memid.ToString();
@@ -78,7 +82,8 @@ namespace TestClient
             port = 8880 + r.Next(10);
 
          
-            args = args + port.ToString();
+            args = args + port.ToString()+" ";
+            args = args + "1";//webrtc
 #endif
 
 

@@ -31,6 +31,7 @@ namespace SimpleWebBrowser
 
         public string InitialURL = "http://www.google.com";
 
+        public bool EnableWebRTC = false;
 
         #endregion
 
@@ -130,7 +131,7 @@ namespace SimpleWebBrowser
 
 
 
-            _mainEngine.InitPlugin(Width, Height, MemoryFile, Port, InitialURL);
+            _mainEngine.InitPlugin(Width, Height, MemoryFile, Port, InitialURL,EnableWebRTC);
         }
 
         // Use this for initialization
