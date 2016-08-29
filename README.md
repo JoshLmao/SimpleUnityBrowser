@@ -39,6 +39,7 @@ The package contains two demo scenes, for the inworld and canvas browser; you ca
 * Width and height - width and height of the browser texture.
 * Memory file and Port - in general, you can keep them random. Memory file is the name of a shared memory file, which is used to send the texture data, and port is a TCP port for the communication between browser and plugin. In case of random, memory file will be a random GUID, and a port will be between 8000 and 9000. But you can set them manually, if you want.
 * Initial URL - obviously, the initial browser URL.
+* WebRTC - enable/disable WebRTC support.
 * UI settings - settings for the main browser controls. You can customize them the way you like, changing they appearance in editor and behaviour in BrowserUI.cs. 
 * Dialog settings - same as UI, but for modal dialogs.
 
@@ -90,11 +91,11 @@ You can build the plugin server from scratch, for example, if you want to change
     * Xilium.CefGlue.dll
 * UnityClient - the main Unity project.
 
-#Building the main solution#
+##Building the main solution##
 
 In general, just build it. By default it set to *Debug/x64*; in case of building it for x86, you need to remove the references to *third_party\SharedMemory.dll* from *SharedPluginServer* and *TestClient*, and add the references to *third_party\SharedMemory_86\SharedMemory.dll*.
 
-#Testing and debugging#
+##Testing and debugging##
 
 Set the *TestClient* as the startup project. Change the path to *SharedPluginServer* in *Form1.cs*:
 
@@ -126,6 +127,13 @@ Copy the CEF runtime from the appropriate folder in *third_party* to the *Shared
 * [Xilium.CefGlue](http://xilium.bitbucket.org/cefglue/)
 * [log4net](https://www.nuget.org/packages/log4net/)
 * [SharedMemory](https://github.com/spazzarama/SharedMemory)
+
+##Versions##
+|              |                |
+|------------- | ---------------|
+|0.1           | Initial version|
+|0.1.1         |Added basic WebRTC support (passes test on https://test.webrtc.org/)|
+
 
 ##TODOs##
 
