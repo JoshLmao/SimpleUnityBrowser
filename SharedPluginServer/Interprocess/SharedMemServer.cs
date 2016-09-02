@@ -6,7 +6,7 @@ namespace SharedPluginServer
 {
     public class SharedMemServer:IDisposable
     {
-        private SharedMemory.SharedArray<byte> _sharedBuf;
+        private SharedArray<byte> _sharedBuf;
 
         private bool _isOpen;
 

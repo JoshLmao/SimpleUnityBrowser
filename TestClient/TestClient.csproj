@@ -77,9 +77,6 @@
       <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SharedMemory">
-      <HintPath>..\third_party\SharedMemory_86\SharedMemory.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -131,6 +128,10 @@
     <ProjectReference Include="..\MessageLibrary\MessageLibrary.csproj">
       <Project>{95d5892c-6095-4988-96d6-e12629042cde}</Project>
       <Name>MessageLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SharedMemory\SharedMemory.csproj">
+      <Project>{f4efe740-0930-4491-ae28-a6c88220679e}</Project>
+      <Name>SharedMemory</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -269,7 +269,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             string defFileName = "MainSharedMem";
             int defPort = 8885;
             bool useWebRTC = false;
-            if (args[0] != "--type=renderer")
+            if (args.Length>0&&args[0] != "--type=renderer")
             {
                 if (args.Length > 1)
                 {
