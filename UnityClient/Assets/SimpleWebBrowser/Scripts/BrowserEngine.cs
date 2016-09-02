@@ -29,7 +29,8 @@ namespace SimpleWebBrowser
         public bool Initialized = false;
 
 
-
+        private bool _needToRunOnce = false;
+        private string _runOnceJS = "";
 
         //Image buffer
         private byte[] _bufferBytes = null;
@@ -384,6 +385,20 @@ namespace SimpleWebBrowser
         #endregion
 
 
+        #region Helpers
+
+        /// <summary>
+        /// Used to run JS on initialization, for example, to set CSS
+        /// </summary>
+        /// <param name="js">JS code</param>
+       public void RunJSOnce(string js )
+        {
+            _needToRunOnce = true;
+            _runOnceJS = js;
+        }
+
+        #endregion
+
 
         public void UpdateTexture()
         {
@@ -410,6 +425,12 @@ namespace SimpleWebBrowser
 
                 SendPing();
 
+                //execute run-once functions
+                if (_needToRunOnce)
+                {
+                    SendExecuteJSEvent(_runOnceJS);
+                    _needToRunOnce = false;
+                }
             }
             else
             {

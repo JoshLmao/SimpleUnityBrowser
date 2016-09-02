@@ -18,6 +18,13 @@ namespace SharedPluginServer
         {
             MainBrowser = browser;
             MainBrowserHost = browser.GetHost();
+
+            //scroll
+           // CefFrame frame = MainBrowser.GetMainFrame();
+          //  frame.ExecuteJavaScript("window.ScrollTo(" + _mainWorker.ClientX + "," + _mainWorker.ClientY + ");", frame.Url, 0);
+
+            
+            
         }
 
         protected override bool DoClose(CefBrowser browser)

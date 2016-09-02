@@ -25,6 +25,7 @@ namespace SharedPluginServer
 
         private WorkerCefMessageRouterHandler _queryHandler;
 
+
         #region Dialogs
         public delegate void CefJSDialog(string message,string prompt,DialogEventType type);
 
@@ -76,12 +77,14 @@ namespace SharedPluginServer
         /// <summary>
         /// Initialization
         /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
+        /// <param name="width">Browser rect width</param>
+        /// <param name="height">Browser rect height</param>
         /// <param name="starturl"></param>
         public void Init(int width,int height,string starturl)
         {
-            
+
+           
+
                RegisterMessageRouter();
 
                 CefWindowInfo cefWindowInfo = CefWindowInfo.Create();
@@ -93,6 +96,7 @@ namespace SharedPluginServer
                 cefBrowserSettings.TabToLinks=CefState.Enabled;
                 cefBrowserSettings.WebSecurity=CefState.Disabled;
                 cefBrowserSettings.WebGL=CefState.Enabled;
+                cefBrowserSettings.WindowlessFrameRate = 30;
 
             _client = new WorkerCefClient(width, height,this);
             
@@ -102,6 +106,8 @@ namespace SharedPluginServer
                 CefBrowserHost.CreateBrowser(cefWindowInfo, _client, cefBrowserSettings, url);
 
                 
+            
+
                 _initialized = true;
                
             

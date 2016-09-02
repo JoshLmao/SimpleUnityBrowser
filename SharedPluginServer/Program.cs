@@ -285,7 +285,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             log.Info("===============START================");
 
            // if (args.Length > 0)
-            {
+           /* {
                 string msg = "";
                 foreach (var s in args)
                 {
@@ -293,9 +293,10 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 }
                 log.Info("ARGS:" + msg);
 
-            }
+            }*/
             //args = new string[] { "--enable-media-stream" };
 
+            
             int defWidth = 1280;
             int defHeight = 720;
             //string defUrl = "http://www.google.com";
@@ -305,11 +306,12 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             bool useWebRTC = false;
             if (args.Length>0&&args[0] != "--type=renderer")
             {
+               
+
                 if (args.Length > 1)
                 {
                     defWidth = Int32.Parse(args[0]);
                     defHeight = Int32.Parse(args[1]);
-                    log.Info("width:" + defWidth + ",height:" + defHeight);
                 }
                 if (args.Length > 2)
                     defUrl = args[2];
@@ -322,7 +324,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                         useWebRTC = true;
             }
 
-            log.InfoFormat("Starting plugin, settings: width:{0},height:{1},url:{2},memfile:{3},port:{4}",
+            log.InfoFormat("Starting plugin, settings:width:{0},height:{1},url:{2},memfile:{3},port:{4}",
                 defWidth, defHeight, defUrl, defFileName, defPort);
 
             try
@@ -391,7 +393,8 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
 
             CefWorker worker =new CefWorker();
-           worker.Init(defWidth,defHeight,defUrl);
+              worker.Init(defWidth,defHeight,defUrl);
+           
             SharedMemServer server=new SharedMemServer();
             server.Init(defWidth*defHeight*4,defFileName);
 

@@ -72,6 +72,8 @@ namespace TestClient
             string args = "";
 #if USE_ARGS
            
+
+
             args =args+ pictureBox1.Width.ToString() + " " + pictureBox1.Height.ToString()+" ";
             args = args + "http://test.webrtc.org"+" ";
             Guid memid = Guid.NewGuid();

@@ -33,6 +33,9 @@ namespace SimpleWebBrowser
 
         public bool EnableWebRTC = false;
 
+        [Multiline]
+        public string JSInitializationCode = "";
+
         #endregion
 
 
@@ -132,6 +135,9 @@ namespace SimpleWebBrowser
 
 
             _mainEngine.InitPlugin(Width, Height, MemoryFile, Port, InitialURL,EnableWebRTC);
+            //hide scrollbars
+            if(JSInitializationCode!="")
+            _mainEngine.RunJSOnce(JSInitializationCode);
         }
 
         // Use this for initialization

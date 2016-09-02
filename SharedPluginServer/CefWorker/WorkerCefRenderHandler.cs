@@ -6,6 +6,7 @@ namespace SharedPluginServer
 {
     class WorkerCefRenderHandler : CefRenderHandler
     {
+        
         private readonly int _windowHeight;
         private readonly int _windowWidth;
 
@@ -20,6 +21,7 @@ namespace SharedPluginServer
 
         public WorkerCefRenderHandler(int windowWidth, int windowHeight)
         {
+            
             _windowWidth = windowWidth;
             _windowHeight = windowHeight;
         }
@@ -38,8 +40,9 @@ namespace SharedPluginServer
 
         protected override bool GetViewRect(CefBrowser browser, ref CefRectangle rect)
         {
-            rect.X = 0;
-            rect.Y = 0;
+            //see https://www.magpcss.org/ceforum/viewtopic.php?f=6&t=12835
+            rect.X = 0;//_windowX;
+            rect.Y = 0;//_windowY;
             rect.Width = _windowWidth;
             rect.Height = _windowHeight;
             return true;
