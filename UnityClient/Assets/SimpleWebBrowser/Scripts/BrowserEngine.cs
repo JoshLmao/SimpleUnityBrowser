@@ -353,6 +353,32 @@ namespace SimpleWebBrowser
 
         }
 
+        public void SendPing()
+        {
+            GenericEvent ge = new GenericEvent()
+            {
+                Type = GenericEventType.Navigate, //could be any
+                GenericType = BrowserEventType.Ping,
+
+            };
+
+            EventPacket ep = new EventPacket()
+            {
+                Event = ge,
+                Type = BrowserEventType.Ping
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+            byte[] b = mstr.GetBuffer();
+            //
+            lock (_clientSocket.GetStream())
+            {
+                _clientSocket.GetStream().Write(b, 0, b.Length);
+            }
+        }
+
 
 
         #endregion
@@ -382,7 +408,7 @@ namespace SimpleWebBrowser
 
                 }
 
-
+                SendPing();
 
             }
             else
