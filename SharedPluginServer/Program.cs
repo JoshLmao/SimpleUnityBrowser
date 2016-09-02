@@ -1,6 +1,7 @@
 ﻿#define USE_ARGS
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
@@ -24,6 +25,8 @@ namespace SharedPluginServer
 
         private CefWorker _mainWorker;
 
+        private System.Windows.Forms.Timer _exitTimer;
+
         /// <summary>
         /// App constructor
         /// </summary>
@@ -43,6 +46,36 @@ namespace SharedPluginServer
             _mainWorker.OnBrowserJSQuery += _mainWorker_OnBrowserJSQuery;
 
             SocketServer.OnReceivedMessage += HandleMessage;
+
+            _exitTimer=new Timer();
+            _exitTimer.Interval = 10000;
+            _exitTimer.Tick += _exitTimer_Tick;
+            _exitTimer.Start();
+        }
+
+        //shut down by timer, in case of client crash/hang
+        private void _exitTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                log.Info("Exiting by timer,timeout:"+_exitTimer.Interval);
+                log.Info("==============SHUTTING DOWN==========");
+                SocketServer.OnReceivedMessage -= HandleMessage;
+                _mainWorker.Shutdown();
+
+                _memServer.Dispose();
+
+                _controlServer.Shutdown();
+
+
+                Application.Exit();
+
+            }
+            catch (Exception ex)
+            {
+
+                log.Info("Exception on shutdown:" + ex.StackTrace);
+            }
         }
 
         private void _mainWorker_OnBrowserJSQuery(string query)
@@ -97,6 +130,10 @@ namespace SharedPluginServer
         public void HandleMessage(EventPacket msg)
         {
           
+            //reset timer
+            _exitTimer.Stop();
+            _exitTimer.Start();
+
             switch (msg.Type)
             {
                 case BrowserEventType.Ping:
@@ -244,10 +281,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         [STAThread]
         static void Main(string[] args)
         {
-            //Application.EnableVisualStyles();
-            // Application.SetCompatibleTextRenderingDefault(false);
-
-            //WARNING: process command line AFTER initialization
+            
             log.Info("===============START================");
 
            // if (args.Length > 0)
