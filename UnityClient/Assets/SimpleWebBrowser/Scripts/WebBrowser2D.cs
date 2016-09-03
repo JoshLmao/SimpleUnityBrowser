@@ -35,6 +35,9 @@ namespace SimpleWebBrowser
 
         public bool EnableWebRTC = false;
 
+        [Multiline]
+        public string JSInitializationCode = "";
+
         #endregion
 
 
@@ -71,6 +74,10 @@ namespace SimpleWebBrowser
         //query - threading
         private bool _startQuery = false;
         private string _jsQueryString = "";
+
+        //status - threading
+        private bool _setUrl = false;
+        private string _setUrlString = "";
 
         //input
         //private GraphicRaycaster _raycaster;
@@ -142,12 +149,11 @@ namespace SimpleWebBrowser
                 System.Random r = new System.Random();
                 Port = 8000 + r.Next(1000);
             }
-
-
-
-           
-
+            
             _mainEngine.InitPlugin(Width, Height, MemoryFile, Port, InitialURL,EnableWebRTC);
+            //run initialization
+            if (JSInitializationCode.Trim() != "")
+                _mainEngine.RunJSOnce(JSInitializationCode);
         }
 
 
@@ -174,11 +180,18 @@ namespace SimpleWebBrowser
             //attach dialogs and querys
             _mainEngine.OnJavaScriptDialog += _mainEngine_OnJavaScriptDialog;
             _mainEngine.OnJavaScriptQuery += _mainEngine_OnJavaScriptQuery;
+            _mainEngine.OnPageLoaded += _mainEngine_OnPageLoaded;
 
             DialogPanel.SetActive(false);
 
 
 
+        }
+
+        private void _mainEngine_OnPageLoaded(string url)
+        {
+            _setUrl = true;
+            _setUrlString = url;
         }
 
         #endregion
@@ -524,6 +537,13 @@ namespace SimpleWebBrowser
                 _startQuery = false;
                 if (OnJSQuery != null)
                     OnJSQuery(_jsQueryString);
+            }
+
+            //Status
+            if (_setUrl)
+            {
+                _setUrl = false;
+                mainUIPanel.UrlField.text = _setUrlString;
 
             }
 

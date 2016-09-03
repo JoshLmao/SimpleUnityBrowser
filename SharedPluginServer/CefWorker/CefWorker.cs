@@ -25,6 +25,19 @@ namespace SharedPluginServer
 
         private WorkerCefMessageRouterHandler _queryHandler;
 
+        #region Status
+
+        public delegate void PageLoaded(string url, int status);
+
+        public event PageLoaded OnPageLoaded;
+
+        public void InvokePageLoaded(string url, int status)
+        {
+            OnPageLoaded?.Invoke(url,status);
+        }
+
+
+        #endregion
 
         #region Dialogs
         public delegate void CefJSDialog(string message,string prompt,DialogEventType type);

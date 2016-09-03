@@ -36,7 +36,8 @@ namespace MessageLibrary
         GoForward=3,
         ExecuteJS=4,
         JSQuery=5,
-        JSQueryResponse=6
+        JSQueryResponse=6,
+        PageLoaded=7
 
         
     }

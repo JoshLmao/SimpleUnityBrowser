@@ -34,7 +34,7 @@ namespace SharedPluginServer
         {
             _mainWorker = mainCefWorker;
             _renderHandler = new WorkerCefRenderHandler(windowWidth, windowHeight);
-            _loadHandler = new WorkerCefLoadHandler();
+            _loadHandler = new WorkerCefLoadHandler(_mainWorker);
             _lifespanHandler=new WorkerCefLifespanHandler(_mainWorker);
             _requestHandler=new WorkerCefWebRequestHandler(_mainWorker);
             _jsDialogHandler=new WorkerCefJSDialogHandler(_mainWorker);

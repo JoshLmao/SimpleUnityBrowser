@@ -204,6 +204,11 @@ namespace TestClient
                             else
                                 SendQueryResponse("Query cancel");
                         }
+
+                        if (ge.Type == GenericEventType.PageLoaded)
+                        {
+                            MessageBox.Show("Navigated to:" + ge.NavigateUrl);
+                        }
                     }
                 }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -9,6 +10,8 @@ using SharedMemory;
 
 using UnityEngine;
 using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
+using Object = System.Object;
 
 namespace SimpleWebBrowser
 {
@@ -21,9 +24,9 @@ namespace SimpleWebBrowser
 
         private SharedArray<byte> _mainTexArray;
 
-        private System.Diagnostics.Process _pluginProcess;
+        private Process _pluginProcess;
 
-        private static System.Object sPixelLock;
+        private static Object sPixelLock;
 
         public Texture2D BrowserTexture = null;
         public bool Initialized = false;
@@ -39,6 +42,15 @@ namespace SimpleWebBrowser
         //TCP buffer
         const int READ_BUFFER_SIZE = 2048;
         private byte[] readBuffer = new byte[READ_BUFFER_SIZE];
+
+        #region Status events
+
+        public delegate void PageLoaded(string url);
+
+        public event PageLoaded OnPageLoaded;
+
+        #endregion
+
 
         #region Settings
 
@@ -127,9 +139,9 @@ namespace SimpleWebBrowser
 
             try
             {
-                _pluginProcess = new System.Diagnostics.Process()
+                _pluginProcess = new Process()
                 {
-                    StartInfo = new System.Diagnostics.ProcessStartInfo()
+                    StartInfo = new ProcessStartInfo()
                     {
                         WorkingDirectory = PluginServerPath,
                         FileName = PluginServerPath + @"\SharedPluginServer.exe",
@@ -180,7 +192,7 @@ namespace SimpleWebBrowser
             GenericEvent ge = new GenericEvent()
             {
                 Type = GenericEventType.Navigate,
-                GenericType = MessageLibrary.BrowserEventType.Generic,
+                GenericType = BrowserEventType.Generic,
                 NavigateUrl = url
             };
 
@@ -192,7 +204,7 @@ namespace SimpleWebBrowser
             EventPacket ep = new EventPacket()
             {
                 Event = ge,
-                Type = MessageLibrary.BrowserEventType.Generic
+                Type = BrowserEventType.Generic
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -210,13 +222,13 @@ namespace SimpleWebBrowser
             GenericEvent ge = new GenericEvent()
             {
                 Type = GenericEventType.Shutdown,
-                GenericType = MessageLibrary.BrowserEventType.Generic
+                GenericType = BrowserEventType.Generic
             };
 
             EventPacket ep = new EventPacket()
             {
                 Event = ge,
-                Type = MessageLibrary.BrowserEventType.Generic
+                Type = BrowserEventType.Generic
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -234,7 +246,7 @@ namespace SimpleWebBrowser
         {
             DialogEvent de = new DialogEvent()
             {
-                GenericType = MessageLibrary.BrowserEventType.Dialog,
+                GenericType = BrowserEventType.Dialog,
                 success = ok,
                 input = dinput
             };
@@ -242,7 +254,7 @@ namespace SimpleWebBrowser
             EventPacket ep = new EventPacket
             {
                 Event = de,
-                Type = MessageLibrary.BrowserEventType.Dialog
+                Type = BrowserEventType.Dialog
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -295,7 +307,7 @@ namespace SimpleWebBrowser
             EventPacket ep = new EventPacket()
             {
                 Event = keyboardEvent,
-                Type = MessageLibrary.BrowserEventType.Keyboard
+                Type = BrowserEventType.Keyboard
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -314,7 +326,7 @@ namespace SimpleWebBrowser
             EventPacket ep = new EventPacket
             {
                 Event = msg,
-                Type = MessageLibrary.BrowserEventType.Mouse
+                Type = BrowserEventType.Mouse
             };
 
             MemoryStream mstr = new MemoryStream();
@@ -501,7 +513,7 @@ namespace SimpleWebBrowser
                 if (ep != null)
                 {
                     //main handlers
-                    if (ep.Type == MessageLibrary.BrowserEventType.Dialog)
+                    if (ep.Type == BrowserEventType.Dialog)
                     {
                         DialogEvent dev = ep.Event as DialogEvent;
                         if (dev != null)
@@ -520,6 +532,12 @@ namespace SimpleWebBrowser
                                 if (OnJavaScriptQuery != null)
                                     OnJavaScriptQuery(ge.JsQuery);
                             }
+                        }
+
+                        if (ge.Type == GenericEventType.PageLoaded)
+                        {
+                            if (OnPageLoaded != null)
+                                OnPageLoaded(ge.NavigateUrl);
                         }
                     }
                 }

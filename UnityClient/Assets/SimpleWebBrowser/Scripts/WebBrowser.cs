@@ -5,6 +5,7 @@ using System.Text;
 //using System.Diagnostics;
 using MessageLibrary;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 namespace SimpleWebBrowser
 {
@@ -35,6 +36,8 @@ namespace SimpleWebBrowser
 
         [Multiline]
         public string JSInitializationCode = "";
+
+        //public List<GameObject> AdditionalBrowserObjects
 
         #endregion
 
@@ -70,6 +73,11 @@ namespace SimpleWebBrowser
         //query - threading
         private bool _startQuery = false;
         private string _jsQueryString = "";
+        
+        //status - threading
+        private bool _setUrl = false;
+        private string _setUrlString = "";
+       
 
         #region JS Query events
 
@@ -135,9 +143,9 @@ namespace SimpleWebBrowser
 
 
             _mainEngine.InitPlugin(Width, Height, MemoryFile, Port, InitialURL,EnableWebRTC);
-            //hide scrollbars
-            if(JSInitializationCode!="")
-            _mainEngine.RunJSOnce(JSInitializationCode);
+            //run initialization
+            if (JSInitializationCode.Trim() != "")
+                _mainEngine.RunJSOnce(JSInitializationCode);
         }
 
         // Use this for initialization
@@ -169,12 +177,21 @@ namespace SimpleWebBrowser
             if (!KeepUIVisible)
                 mainUIPanel.Hide();
 
-            //attach dialogs and querys
+            //attach dialogs and queries
             _mainEngine.OnJavaScriptDialog += _mainEngine_OnJavaScriptDialog;
             _mainEngine.OnJavaScriptQuery += _mainEngine_OnJavaScriptQuery;
+            _mainEngine.OnPageLoaded += _mainEngine_OnPageLoaded;
+
             DialogCanvas.worldCamera = MainCamera;
             DialogCanvas.gameObject.SetActive(false);
 
+        }
+
+        private void _mainEngine_OnPageLoaded(string url)
+        {
+            _setUrl = true;
+            _setUrlString = url;
+           
         }
 
         //make it thread-safe
@@ -470,6 +487,14 @@ namespace SimpleWebBrowser
 
             }
 
+            //Status
+            if (_setUrl)
+            {
+                _setUrl = false;
+                mainUIPanel.UrlField.text = _setUrlString;
+
+            }
+
 
 
             if (_focused && !mainUIPanel.UrlField.isFocused) //keys
@@ -516,5 +541,6 @@ namespace SimpleWebBrowser
         }
 
 
+        public event BrowserEngine.PageLoaded OnPageLoaded;
     }
 }

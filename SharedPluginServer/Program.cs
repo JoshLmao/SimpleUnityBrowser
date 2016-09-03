@@ -45,12 +45,39 @@ namespace SharedPluginServer
             _mainWorker.OnJSDialog += _mainWorker_OnJSDialog;
             _mainWorker.OnBrowserJSQuery += _mainWorker_OnBrowserJSQuery;
 
+            //attach page events
+            _mainWorker.OnPageLoaded += _mainWorker_OnPageLoaded;
+
             SocketServer.OnReceivedMessage += HandleMessage;
 
             _exitTimer=new Timer();
             _exitTimer.Interval = 10000;
             _exitTimer.Tick += _exitTimer_Tick;
             _exitTimer.Start();
+        }
+
+        private void _mainWorker_OnPageLoaded(string url, int status)
+        {
+           // log.Info("Navigated to:"+url);
+
+            GenericEvent msg = new GenericEvent()
+            {
+                NavigateUrl = url,
+                GenericType = BrowserEventType.Generic,
+                Type = GenericEventType.PageLoaded
+            };
+
+            EventPacket ep = new EventPacket
+            {
+                Event = msg,
+                Type = BrowserEventType.Generic
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+
+            _controlServer.Client.SendData(mstr.GetBuffer());
         }
 
         //shut down by timer, in case of client crash/hang
