@@ -9,7 +9,7 @@ using MessageLibrary;
 
 namespace SharedPluginServer.Interprocess
 {
-  /*public  class SocketServer
+   public  class SocketServer
     {
 
         private static readonly log4net.ILog log =
@@ -179,7 +179,23 @@ namespace SharedPluginServer.Interprocess
             }
         }
 
-       
+        //unused
+        /*public byte[] SendSync(byte[] data)
+        {
+            lock (client.GetStream())
+            {
+                client.GetStream().Write(data, 0, data.Length);
+            }
+
+            lock (client.GetStream())
+            {
+                int read = client.GetStream().Read(readBuffer, 0, READ_BUFFER_SIZE);
+                
+            }
+
+            return readBuffer;
+
+        }*/
 
         private void StreamReceiver(IAsyncResult ar)
         {
@@ -206,7 +222,32 @@ namespace SharedPluginServer.Interprocess
             }
         }
 
-     
+      /*  public byte[] SendPing()
+        {
+            GenericEvent ge = new GenericEvent()
+            {
+                Type = GenericEventType.Navigate, //could be any
+                GenericType = BrowserEventType.Ping,
+
+            };
+
+            EventPacket ep = new EventPacket()
+            {
+                Event = ge,
+                Type = BrowserEventType.Ping
+            };
+
+            MemoryStream mstr = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(mstr, ep);
+            byte[] b = mstr.GetBuffer();
+            //
+            /*lock (client.GetStream())
+            {
+                client.GetStream().Write(b, 0, b.Length);
+            }
+            return SendSync(b);
+        }*/
     }
-    #endregion*/
+    #endregion
 }

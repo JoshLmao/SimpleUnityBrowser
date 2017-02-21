@@ -53,13 +53,6 @@ namespace SharedPluginServer
             return false;
         }
 
-        protected override bool StartDragging(CefBrowser browser, CefDragData dragData, CefDragOperationsMask allowedOps,
-            int x, int y)
-        {
-           // dragData.
-            return false;
-        }
-
         protected override void OnPopupSize(CefBrowser browser, CefRectangle rect)
         {
         }

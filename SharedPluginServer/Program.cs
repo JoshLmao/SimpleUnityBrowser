@@ -16,18 +16,16 @@ namespace SharedPluginServer
     public class App
     {
         private static readonly log4net.ILog log =
-            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
         private SharedMemServer _memServer;
 
-        private SharedCommServer _controlServer;
+        private SocketServer _controlServer;
 
         private CefWorker _mainWorker;
 
         private System.Windows.Forms.Timer _exitTimer;
-
-        private bool _mainProcess;
 
         /// <summary>
         /// App constructor
@@ -35,12 +33,11 @@ namespace SharedPluginServer
         /// <param name="worker">Main CEF worker</param>
         /// <param name="memServer">Shared memory file</param>
         /// <param name="commServer">TCP server</param>
-        public App(CefWorker worker, SharedMemServer memServer, SharedCommServer commServer,bool mainProcess)
+        public App(CefWorker worker, SharedMemServer memServer, SocketServer commServer)
         {
             _memServer = memServer;
             _mainWorker = worker;
             _controlServer = commServer;
-            _mainProcess = mainProcess;
 
             _mainWorker.SetMemServer(_memServer);
 
@@ -51,24 +48,17 @@ namespace SharedPluginServer
             //attach page events
             _mainWorker.OnPageLoaded += _mainWorker_OnPageLoaded;
 
+            SocketServer.OnReceivedMessage += HandleMessage;
 
-            //change it by cycle?
-            
-
-
-           // SocketServer.OnReceivedMessage += HandleMessage;
-           SharedCommServer.OnReceivedMessage += HandleMessage;
-
-            log.Info("Setting up shutdown timer");
-            _exitTimer = new Timer();
-            _exitTimer.Interval = 20000;
+            _exitTimer=new Timer();
+            _exitTimer.Interval = 10000;
             _exitTimer.Tick += _exitTimer_Tick;
             _exitTimer.Start();
         }
 
         private void _mainWorker_OnPageLoaded(string url, int status)
         {
-            // log.Info("Navigated to:"+url);
+           // log.Info("Navigated to:"+url);
 
             GenericEvent msg = new GenericEvent()
             {
@@ -87,7 +77,7 @@ namespace SharedPluginServer
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
 
-            _controlServer.SendData(mstr.GetBuffer());
+            _controlServer.Client.SendData(mstr.GetBuffer());
         }
 
         //shut down by timer, in case of client crash/hang
@@ -95,17 +85,14 @@ namespace SharedPluginServer
         {
             try
             {
-                log.Info("Exiting by timer,timeout:" + _exitTimer.Interval);
+                log.Info("Exiting by timer,timeout:"+_exitTimer.Interval);
                 log.Info("==============SHUTTING DOWN==========");
-               SharedCommServer.OnReceivedMessage -= HandleMessage;
+                SocketServer.OnReceivedMessage -= HandleMessage;
                 _mainWorker.Shutdown();
 
                 _memServer.Dispose();
 
-              //  _controlServer.Shutdown();
-
-                if(_mainProcess)
-                CefRuntime.Shutdown();
+                _controlServer.Shutdown();
 
 
                 Application.Exit();
@@ -137,7 +124,7 @@ namespace SharedPluginServer
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
 
-            _controlServer.SendData(mstr.GetBuffer());
+            _controlServer.Client.SendData(mstr.GetBuffer());
         }
 
         private void _mainWorker_OnJSDialog(string message, string prompt, DialogEventType type)
@@ -160,7 +147,7 @@ namespace SharedPluginServer
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
 
-            _controlServer.SendData(mstr.GetBuffer());
+            _controlServer.Client.SendData(mstr.GetBuffer());
         }
 
         /// <summary>
@@ -169,7 +156,7 @@ namespace SharedPluginServer
         /// <param name="msg">Message from client app</param>
         public void HandleMessage(EventPacket msg)
         {
-
+          
             //reset timer
             _exitTimer.Stop();
             _exitTimer.Start();
@@ -178,67 +165,64 @@ namespace SharedPluginServer
             {
                 case BrowserEventType.Ping:
                 {
-
-                    break;
+                 
+                        break;
                 }
 
                 case BrowserEventType.Generic:
                 {
-                    GenericEvent genericEvent = msg.Event as GenericEvent;
+                    GenericEvent genericEvent=msg.Event as GenericEvent;
                     if (genericEvent != null)
                     {
                         switch (genericEvent.Type)
                         {
-                            case GenericEventType.Shutdown:
+                             case GenericEventType.Shutdown:
                             {
                                 try
                                 {
                                     log.Info("==============SHUTTING DOWN==========");
-                                    SharedCommServer.OnReceivedMessage -= HandleMessage;
-                                    _mainWorker.Shutdown();
-
-                                    _memServer.Dispose();
-
-                                            //_controlServer.Shutdown();
-                                            _controlServer.isWorking = false;
-
-                                            if (_mainProcess)
-                                                CefRuntime.Shutdown();
-
-                                    Application.Exit();
-
+                                    SocketServer.OnReceivedMessage -= HandleMessage;
+                                       _mainWorker.Shutdown();
+                                    
+                                     _memServer.Dispose();
+                                  
+                                    _controlServer.Shutdown();
+                                     
+                                            
+                                            Application.Exit();
+                                  
                                 }
                                 catch (Exception e)
                                 {
 
-                                    log.Info("Exception on shutdown:" + e.StackTrace);
+                                    log.Info("Exception on shutdown:"+e.StackTrace);
                                 }
 
                                 break;
                             }
-                            case GenericEventType.Navigate:
-
-                                _mainWorker.Navigate(genericEvent.NavigateUrl);
+                               case GenericEventType.Navigate:
+                                    
+                                    _mainWorker.Navigate(genericEvent.NavigateUrl);
                                 break;
 
-                            case GenericEventType.GoBack:
-                                _mainWorker.GoBack();
+                                case GenericEventType.GoBack:
+                                    _mainWorker.GoBack();
                                 break;
 
-                            case GenericEventType.GoForward:
-                                _mainWorker.GoForward();
+                                case GenericEventType.GoForward:
+                                        _mainWorker.GoForward();
                                 break;
 
-                            case GenericEventType.ExecuteJS:
-                                _mainWorker.ExecuteJavaScript(genericEvent.JsCode);
+                                case GenericEventType.ExecuteJS:
+                                    _mainWorker.ExecuteJavaScript(genericEvent.JsCode);
                                 break;
-
+                               
                             case GenericEventType.JSQueryResponse:
                             {
-                                _mainWorker.AnswerQuery(genericEvent.JsQueryResponse);
-                                break;
+                                        _mainWorker.AnswerQuery(genericEvent.JsQueryResponse);
+                             break;   
                             }
-
+                               
                         }
                     }
                     break;
@@ -246,18 +230,18 @@ namespace SharedPluginServer
 
                 case BrowserEventType.Dialog:
                 {
-                    DialogEvent de = msg.Event as DialogEvent;
+                        DialogEvent de=msg.Event as DialogEvent;
                     if (de != null)
                     {
-                        _mainWorker.ContinueDialog(de.success, de.input);
+                        _mainWorker.ContinueDialog(de.success,de.input);
                     }
                     break;
-
+                    
                 }
 
                 case BrowserEventType.Keyboard:
                 {
-                    KeyboardEvent keyboardEvent = msg.Event as KeyboardEvent;
+                        KeyboardEvent keyboardEvent=msg.Event as KeyboardEvent;
                     if (keyboardEvent != null)
                     {
                         if (keyboardEvent.Type != KeyboardEventType.Focus)
@@ -269,47 +253,47 @@ namespace SharedPluginServer
                     break;
                 }
                 case BrowserEventType.Mouse:
-                {
-                    MouseMessage mouseMessage = msg.Event as MouseMessage;
-                    if (mouseMessage != null)
                     {
-                        switch (mouseMessage.Type)
+                        MouseMessage mouseMessage=msg.Event as MouseMessage;
+                        if (mouseMessage != null)
                         {
-                            case MouseEventType.ButtonDown:
-                                _mainWorker.MouseEvent(mouseMessage.X, mouseMessage.Y, false, mouseMessage.Button);
-                                break;
-                            case MouseEventType.ButtonUp:
-                                _mainWorker.MouseEvent(mouseMessage.X, mouseMessage.Y, true, mouseMessage.Button);
-                                break;
-                            case MouseEventType.Move:
-                                _mainWorker.MouseMoveEvent(mouseMessage.X, mouseMessage.Y, mouseMessage.Button);
-                                break;
-                            case MouseEventType.Leave:
-                                _mainWorker.MouseLeaveEvent();
-                                break;
-                            case MouseEventType.Wheel:
-                                _mainWorker.MouseWheelEvent(mouseMessage.X, mouseMessage.Y, mouseMessage.Delta);
-                                break;
+                            switch (mouseMessage.Type)
+                            {
+                                case MouseEventType.ButtonDown:
+                                    _mainWorker.MouseEvent(mouseMessage.X, mouseMessage.Y, false,mouseMessage.Button);
+                                    break;
+                                case MouseEventType.ButtonUp:
+                                    _mainWorker.MouseEvent(mouseMessage.X, mouseMessage.Y, true,mouseMessage.Button);
+                                    break;
+                                case MouseEventType.Move:
+                                    _mainWorker.MouseMoveEvent(mouseMessage.X, mouseMessage.Y, mouseMessage.Button);
+                                    break;
+                                    case MouseEventType.Leave:
+                                    _mainWorker.MouseLeaveEvent();
+                                    break;
+                                    case MouseEventType.Wheel:
+                                    _mainWorker.MouseWheelEvent(mouseMessage.X,mouseMessage.Y,mouseMessage.Delta);
+                                    break;
+                            }
                         }
-                    }
 
-                    break;
-                }
+                        break;
+                    }
             }
 
-
+           
         }
 
-
+     
     }
 
-
+    
 
 
     static class Program
     {
         private static readonly log4net.ILog log =
-            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The main entry point for the application.
@@ -322,13 +306,13 @@ namespace SharedPluginServer
         /// WebRTC?1:0
         /// </summary>
         [STAThread]
-        static int Main(string[] args)
+        static void Main(string[] args)
         {
-
+            
             log.Info("===============START================");
 
-            // if (args.Length > 0)
-            /* {
+           // if (args.Length > 0)
+           /* {
                 string msg = "";
                 foreach (var s in args)
                 {
@@ -339,22 +323,17 @@ namespace SharedPluginServer
             }*/
             //args = new string[] { "--enable-media-stream" };
 
-
+            
             int defWidth = 1280;
             int defHeight = 720;
             //string defUrl = "http://www.google.com";
             string defUrl = "http://test.webrtc.org";
             string defFileName = "MainSharedMem";
-            int defPort = 18885;
+            int defPort = 8885;
             bool useWebRTC = false;
-
-            string defPath = "";//or "E:\\temp\\cef"
-
-            bool initAllStuff = true;
-
-            if (args.Length > 0 && args[0] != "--type=renderer") //ok,so just for fun - do we need to init this all in case of a renderer?
+            if (args.Length>0&&args[0] != "--type=renderer")
             {
-
+               
 
                 if (args.Length > 1)
                 {
@@ -367,173 +346,95 @@ namespace SharedPluginServer
                     defFileName = args[3];
                 if (args.Length > 4)
                     defPort = Int32.Parse(args[4]);
-                if (args.Length > 5)
+                if(args.Length>5)
                     if (args[5] == "1")
                         useWebRTC = true;
-                if (args.Length > 6)
-                    defPath = args[6];
             }
-            else
+
+            log.InfoFormat("Starting plugin, settings:width:{0},height:{1},url:{2},memfile:{3},port:{4}",
+                defWidth, defHeight, defUrl, defFileName, defPort);
+
+            try
             {
-               // initAllStuff = false;
-                log.Info("Starting render process");
+
+            
+            //////// CEF RUNTIME
+            try
+            {
+                CefRuntime.Load();
             }
+            catch (DllNotFoundException ex)
+            {
+                log.ErrorFormat("{0} error", ex.Message);
+            }
+            catch (CefRuntimeException ex)
+            {
+                log.ErrorFormat("{0} error", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("{0} error", ex.Message);
+
+            }
+
+
 
            
+                CefMainArgs cefMainArgs;
+                cefMainArgs = new CefMainArgs(args);
+                var cefApp = new WorkerCefApp(useWebRTC);
 
-                log.InfoFormat(
-                    "Starting plugin, settings:width:{0},height:{1},url:{2},memfile:{3},port:{4},temp path:{5}",
-                    defWidth, defHeight, defUrl, defFileName, defPort, defPath);
+            if (CefRuntime.ExecuteProcess(cefMainArgs, cefApp) != -1)
+            {
+                log.ErrorFormat("CefRuntime could not the secondary process.");
+                return;
+            }
+            var cefSettings = new CefSettings
+            {
+                SingleProcess = false,
+                MultiThreadedMessageLoop = true,
+                WindowlessRenderingEnabled = true,
+                LogSeverity = CefLogSeverity.Info,
 
-                bool runtimeStarted = false;
-
-            
-                try
-                {
-
-                    if (initAllStuff)
-                    {
-                        //////// CEF RUNTIME
-                        try
-                        {
-                            CefRuntime.Load();
-                        }
-                        catch (DllNotFoundException ex)
-                        {
-                            log.ErrorFormat("{0} error", ex.Message);
-                            return 1;
-                        }
-                        catch (CefRuntimeException ex)
-                        {
-                            log.ErrorFormat("{0} error", ex.Message);
-                            return 2;
-                        }
-                        catch (Exception ex)
-                        {
-                            log.ErrorFormat("{0} error", ex.Message);
-                            return 3;
-
-                        }
-
-                        log.Info("CEF Runtime loaded");
-
-                        //I think, at this point we already have a runtime, so...
-
-                    }
-
-
-                    CefMainArgs cefMainArgs;
-                        cefMainArgs = new CefMainArgs(args);
-                        var cefApp = new WorkerCefApp(useWebRTC);
-
-                        int exitCode = CefRuntime.ExecuteProcess(cefMainArgs, cefApp);
-                        if (exitCode != -1)
-                       
-                        {
-                            //TODO
-                            //sometimes we have an error here, why?
-                            log.ErrorFormat("CefRuntime could not the secondary process? code:" + exitCode);
-                            //if(runtimeStarted)
-                            //CefRuntime.Shutdown();
-                            return exitCode;
-                        }
-                    
-                    runtimeStarted = true;
-
-                    log.Info("CEF Runtime started");
-                    var cefSettings = new CefSettings
-                    {
-                        SingleProcess = false,
-                        MultiThreadedMessageLoop = true,
-                        WindowlessRenderingEnabled = true,
-                        LogSeverity = CefLogSeverity.Info,
-                        //TODO!!
-                        CachePath = defPath, //"E:\\temp\\cef",
-                        //UserDataPath
-                        //LogFile
-                        //BackgroundCOlor - ?
-                       // BrowserSubprocessPath = "CefHost.exe"
-                    };
-
-
-                    if (initAllStuff)
-                    {
-                        try
-                        {
-                            CefRuntime.Initialize(cefMainArgs, cefSettings, cefApp, IntPtr.Zero);
-                        }
-                        catch (CefRuntimeException ex)
-                        {
-                            log.ErrorFormat("{0} error", ex.Message);
-                           // if (runtimeStarted)
-                           //     CefRuntime.Shutdown();
-                            return 4;
-                        }
-                    }
-                    /////////////
-                }
-                catch (Exception ex)
-                {
-                    log.Info("EXCEPTION ON CEF INITIALIZATION:" + ex.Message + "\n" + ex.StackTrace);
-                    //throw;
-                    if (runtimeStarted)
-                        CefRuntime.Shutdown();
-                    return 5;
-                }
-            
-
-
-            CefWorker worker = new CefWorker();
-                worker.Init(defWidth, defHeight, defUrl);
-
-                log.Info("CEF worker initialized");
-
-                SharedMemServer server = new SharedMemServer();
-                try
-                {
-
-                    server.Init(defWidth*defHeight*4, defFileName);
-                }
-                catch (Exception ex)
-                {
-
-                    log.Info("EXCEPTION ON SHARED MEMORY INITIALIZATION:" + ex.Message + "\n" + ex.StackTrace);
-
-                    CefRuntime.Shutdown();
-                    return 6;
-                    // throw;
-                }
-
-                log.Info("Shared memory initialized");
-
-            // SocketServer ssrv = new SocketServer();
-            SharedCommServer ssrv = new SharedCommServer();
-                try
-                {
-
-                ssrv.Init("input_test", "output_test",true);
-                 //   ssrv.Init(defPort);
-                }
-                catch (Exception ex)
-                {
-                    log.Info("EXCEPTION ON SOCKET INITIALIZATION:" + ex.Message + "\n" + ex.StackTrace);
-                    CefRuntime.Shutdown();                    return 7;
-                    //throw;
-                }
-
-                log.Info("Sockets initialized");
+            };
 
 
 
-                var app = new App(worker, server, ssrv,initAllStuff);
+            try
+            {
+                CefRuntime.Initialize(cefMainArgs, cefSettings, cefApp, IntPtr.Zero);
+            }
+            catch (CefRuntimeException ex)
+            {
+                log.ErrorFormat("{0} error", ex.Message);
 
-                log.Info("All done,running an app!");
-            
+            }
+                /////////////
+            }
+            catch (Exception ex)
+            {
+                log.Info("EXCEPTION ON CEF INITIALIZATION:"+ex.Message+"\n"+ex.StackTrace);
+                throw;
+            }
+
+
+
+            CefWorker worker =new CefWorker();
+              worker.Init(defWidth,defHeight,defUrl);
+           
+            SharedMemServer server=new SharedMemServer();
+            server.Init(defWidth*defHeight*4,defFileName);
+
+           
+            SocketServer ssrv=new SocketServer();
+            ssrv.Init(defPort);
+
+            var app=new App(worker,server,ssrv);
+          
             Application.Run();
 
-           
             CefRuntime.Shutdown();
-            return 0;
+
         }
     }
 }
