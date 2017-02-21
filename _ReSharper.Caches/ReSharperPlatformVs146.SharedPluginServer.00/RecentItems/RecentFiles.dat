@@ -1,0 +1,60 @@
+﻿<RecentFiles>
+  <RecentFiles>
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/d:CefWorker/f:CefWorker.cs" caret="210" fromTop="1" />
+    <File id="435AB121-D56C-44E8-9B01-F3B9911C8E83/f:App.config" caret="645" fromTop="18" />
+    <File id="95D5892C-6095-4988-96D6-E12629042CDE/f:GenericEvents.cs" caret="0" fromTop="0" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/d:Interprocess/f:SharedMemServer.cs" caret="0" fromTop="0" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/d:CefWorker/f:WorkerCefLifespanHandler.cs" caret="0" fromTop="0" />
+    <File id="F4EFE740-0930-4491-AE28-A6C88220679E/d:SharedMemory/f:SharedArray.cs" caret="0" fromTop="0" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/d:CefWorker/f:WorkerCefLoadHandler.cs" caret="0" fromTop="0" />
+    <File id="95D5892C-6095-4988-96D6-E12629042CDE/f:DialogEvents.cs" caret="0" fromTop="0" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/d:Interprocess/f:SocketServer.cs" caret="232" fromTop="11" />
+    <File id="642AD9C3-33E5-430F-8A45-54F5DD5679F0/f:Form1.cs" caret="0" fromTop="0" />
+    <File id="642AD9C3-33E5-430F-8A45-54F5DD5679F0/f:Program.cs" caret="0" fromTop="0" />
+    <File id="F4EFE740-0930-4491-AE28-A6C88220679E/d:SharedMemory/f:FastStructure.cs" caret="0" fromTop="0" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/d:CefWorker/f:WorkerCefDragHandler.cs" caret="0" fromTop="0" />
+    <File id="F4EFE740-0930-4491-AE28-A6C88220679E/d:SharedMemory/f:BufferWithLocks.cs" caret="0" fromTop="0" />
+    <File id="435AB121-D56C-44E8-9B01-F3B9911C8E83/f:Program.cs" caret="758" fromTop="16" />
+    <File id="95D5892C-6095-4988-96D6-E12629042CDE/f:KeyboardEvents.cs" caret="189" fromTop="14" />
+    <File id="95D5892C-6095-4988-96D6-E12629042CDE/f:MouseEvents.cs" caret="0" fromTop="0" />
+    <File id="F4EFE740-0930-4491-AE28-A6C88220679E/d:SharedMemory/f:UnsafeNativeMethods.cs" caret="1699" fromTop="0" />
+    <File id="F4EFE740-0930-4491-AE28-A6C88220679E/d:SharedMemory/f:SharedHeader.cs" caret="1632" fromTop="4" />
+    <File id="F4EFE740-0930-4491-AE28-A6C88220679E/d:SharedMemory/f:SharedBuffer.cs" caret="9211" fromTop="21" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="16085" fromTop="342" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/d:CefWorker/f:WorkerCefClient.cs" caret="8277" fromTop="232" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/d:CefWorker/f:WorkerCefApp.cs" caret="565" fromTop="21" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/d:CefWorker/f:WorkerCefRenderHandler.cs" caret="2706" fromTop="4" />
+  </RecentFiles>
+  <RecentEdits>
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="15307" fromTop="14" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="1094" fromTop="23" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="731" fromTop="15" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="1261" fromTop="28" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="3180" fromTop="19" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="6192" fromTop="14" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/d:CefWorker/f:WorkerCefApp.cs" caret="69" fromTop="4" />
+    <File id="435AB121-D56C-44E8-9B01-F3B9911C8E83/f:Program.cs" caret="395" fromTop="14" />
+    <File id="435AB121-D56C-44E8-9B01-F3B9911C8E83/f:Program.cs" caret="1102" fromTop="26" />
+    <File id="435AB121-D56C-44E8-9B01-F3B9911C8E83/f:App.config" caret="59" fromTop="2" />
+    <File id="435AB121-D56C-44E8-9B01-F3B9911C8E83/f:App.config" caret="645" fromTop="18" />
+    <File id="435AB121-D56C-44E8-9B01-F3B9911C8E83/f:Program.cs" caret="795" fromTop="16" />
+    <File id="435AB121-D56C-44E8-9B01-F3B9911C8E83/f:Program.cs" caret="538" fromTop="10" />
+    <File id="435AB121-D56C-44E8-9B01-F3B9911C8E83/f:Program.cs" caret="1102" fromTop="26" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="15179" fromTop="26" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="12243" fromTop="26" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="10550" fromTop="18" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="13118" fromTop="19" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="13338" fromTop="24" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="13548" fromTop="29" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="14042" fromTop="15" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="14410" fromTop="22" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="16204" fromTop="24" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="16850" fromTop="28" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="17357" fromTop="23" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="17654" fromTop="19" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="17497" fromTop="21" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="328" fromTop="5" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="1714" fromTop="19" />
+    <File id="509B6EFE-7B42-486E-9E12-17F036E7E7C9/f:Program.cs" caret="15725" fromTop="25" />
+  </RecentEdits>
+</RecentFiles>

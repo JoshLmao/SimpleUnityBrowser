@@ -41,11 +41,13 @@ namespace TestClient
         private int posX = 0;
         private int posY = 0;
 
-        private TcpClient clientSocket;
+        //private TcpClient clientSocket;
 
         //  private Queue<MouseMessage> _sendEvents; 
 
         private SharedArray<byte> arr; //= new SharedArray<byte>("MainSharedMem");
+
+        private SharedCommServer _commServer;
 
         private Bitmap _texture;
 
@@ -122,12 +124,14 @@ namespace TestClient
             //Connect
             IPAddress ip = IPAddress.Parse("127.0.0.1");
             //clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            clientSocket=new TcpClient("127.0.0.1", port);
+            //  clientSocket=new TcpClient("127.0.0.1", port);
 
             //clientSocket.Connect(new IPEndPoint(ip, port));
-
+            _commServer = new SharedCommServer();
+            SharedCommServer.OnReceivedMessage += SharedCommServer_OnReceivedMessage;
+            _commServer.Init("input_test", "output_test",false);
             //Receive
-            this.clientSocket.GetStream().BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
+          //  this.clientSocket.GetStream().BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
 #if USE_ARGS
             _texture = new Bitmap(pictureBox1.Width, pictureBox1.Width);
 #else
@@ -138,8 +142,69 @@ namespace TestClient
             Application.Idle += Application_Idle;
         }
 
+        private void SharedCommServer_OnReceivedMessage(EventPacket msg)
+        {
+           
+            EventPacket ep = msg;
+            if (ep != null)
+            {
+                // if (ep.Type == BrowserEventType.Ping)
+                //    SendPing();
+                //  //  MessageBox.Show("PINGBACK");
 
-        private void StreamReceiver(IAsyncResult ar)
+                if (ep.Type == BrowserEventType.Dialog)
+                {
+                    DialogEvent dev = ep.Event as DialogEvent;
+                    switch (dev.Type)
+                    {
+                        case DialogEventType.Alert:
+                            {
+                                _inModalDialog = true;
+                                MessageBox.Show(dev.Message, "InApp");
+                                SendDialogResponse(true);
+
+                                _inModalDialog = false;
+                                break;
+                            }
+
+                        case DialogEventType.Confirm:
+                            {
+                                _inModalDialog = true;
+                                if (MessageBox.Show(dev.Message, "InApp", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                                {
+                                    SendDialogResponse(true);
+                                }
+                                else
+                                {
+                                    SendDialogResponse(false);
+                                }
+                                _inModalDialog = false;
+                                break;
+                            }
+                    }
+                }
+
+                if (ep.Type == BrowserEventType.Generic)
+                {
+                    GenericEvent ge = ep.Event as GenericEvent;
+
+                    if (ge.Type == GenericEventType.JSQuery)
+                    {
+                        if (MessageBox.Show("JS QUERY:" + ge.JsQuery, "Query", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                            SendQueryResponse("Query ok");
+                        else
+                            SendQueryResponse("Query cancel");
+                    }
+
+                    if (ge.Type == GenericEventType.PageLoaded)
+                    {
+                        MessageBox.Show("Navigated to:" + ge.NavigateUrl);
+                    }
+                }
+            }
+        }
+
+      /*  private void StreamReceiver(IAsyncResult ar)
         {
             int BytesRead;
 
@@ -223,7 +288,7 @@ namespace TestClient
             catch (Exception e)
             {
             }
-        }
+        }*/
 
         public void SendDialogResponse(bool ok)
         {
@@ -246,10 +311,10 @@ namespace TestClient
             byte[] b = mstr.GetBuffer();
 
             //
-            lock (clientSocket.GetStream())
+           /* lock (clientSocket.GetStream())
             {
                 clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            }*/
 
         }
 
@@ -273,10 +338,10 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
+            /*lock (clientSocket.GetStream())
             {
                 clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            }*/
         }
 
 
@@ -307,7 +372,8 @@ namespace TestClient
         {
             SendShutdownEvent();
             Application.Idle -= Application_Idle;
-            clientSocket.Close();
+            //  clientSocket.Close();
+            _commServer.isWorking = false;
             
         }
 
@@ -331,10 +397,12 @@ namespace TestClient
                 byte[] b = mstr.GetBuffer();
 
                 //
-                lock (clientSocket.GetStream())
-                {
-                    clientSocket.GetStream().Write(b, 0, b.Length);
-                }
+                /*  lock (clientSocket.GetStream())
+                  {
+                      clientSocket.GetStream().Write(b, 0, b.Length);
+                  }*/
+                //_commServer.SendData(b);
+            
             }
             //  MessageBox.Show(_sendEvents.Count.ToString());
         }
@@ -358,10 +426,10 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
+           /* lock (clientSocket.GetStream())
             {
                 clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            }*/
             //  MessageBox.Show(_sendEvents.Count.ToString());
 
         }
@@ -386,10 +454,10 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
+           /* lock (clientSocket.GetStream())
             {
                 clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            }*/
         }
 
         public void SendNavigateEvent(string url,bool back,bool forward)
@@ -416,11 +484,13 @@ namespace TestClient
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
+            MessageBox.Show("SEND 1");
+            _commServer.SendData(b);
             //
-            lock (clientSocket.GetStream())
+            /*lock (clientSocket.GetStream())
             {
                 clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            }*/
             //  MessageBox.Show(_sendEvents.Count.ToString());
         }
 
@@ -444,10 +514,10 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
+           /* lock (clientSocket.GetStream())
             {
                 clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            }*/
             //  MessageBox.Show(_sendEvents.Count.ToString());
         }
 
@@ -470,10 +540,10 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
+           /* lock (clientSocket.GetStream())
             {
                 clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            }*/
             //  MessageBox.Show(_sendEvents.Count.ToString());
         }
 
@@ -517,7 +587,7 @@ namespace TestClient
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
            // MessageBox.Show("_______MOVE 1");
-            if (posX != e.X || posY != e.Y)
+            if (posX != e.X || posY != e.Y||e.Button!=MouseButtons.None)
             {
                 MouseMessage msg = new MouseMessage
                 {
@@ -529,6 +599,7 @@ namespace TestClient
                     Button = MouseButton.None
                 };
 
+                
                 if (e.Button == MouseButtons.Left)
                     msg.Button = MouseButton.Left;
                 if (e.Button == MouseButtons.Right)
@@ -643,8 +714,158 @@ namespace TestClient
 
 
 
+    public class SharedCommServer
+    {
+
+        private static readonly log4net.ILog log =
+log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private SharedArray<byte> _inputBuf;
+
+        private SharedArray<byte> _outputBuf;
+
+        private bool _isInputOpen;
+
+        public string FilenameInput;
+
+        private bool _isOutputOpen;
+
+        public string FilenameOutput;
+
+        //messaging
+
+        EventPacket _current = null;
+
+        bool tosend;
+
+        public delegate void ReceivedMessage(EventPacket msg);
+
+        public bool isWorking = true;
+
+        public static event ReceivedMessage OnReceivedMessage;
+
+
+        public void Init(string filenameInput, string filenameOutput, bool create)
+        {
+            create = tosend;
+
+            if (create)
+                _inputBuf = new SharedArray<byte>(filenameInput, 4096000); //one size fits all
+            _isInputOpen = true;
+            FilenameInput = filenameInput;
+
+            if (create)
+                _outputBuf = new SharedArray<byte>(filenameOutput, 4096000); //one size fits all
+            _isOutputOpen = true;
+            FilenameOutput = filenameOutput;
+            isWorking = true;
+        }
+
+        public void Write(byte[] bytes)
+        {
+            MessageBox.Show("SEND 3");
+            if (_isOutputOpen)
+            {
+                MessageBox.Show("SEND 4"+bytes.Length);
+                if (bytes.Length < 4096)
+                {
+                    MessageBox.Show("SEND 5");
+                    if (tosend)
+                        _outputBuf.Write(bytes);
+                    else
+                    {
+                        MessageBox.Show("SENDING:" + bytes.Length);
+                        _inputBuf.Write(bytes);
+                    }
+                }
+
+            }
+        }
+
+        public void SendData(byte[] msg)
+        {
+            byte[] tosend = new byte[4096000];
+            byte[] intBytes = BitConverter.GetBytes(msg.Length);
+            tosend[0] = intBytes[0];
+            tosend[1] = intBytes[1];
+            tosend[2] = intBytes[2];
+            tosend[3] = intBytes[3];
+            MessageBox.Show("SEND 2");
+            Buffer.BlockCopy(msg, 0, tosend, 4, msg.Length);
+            Write(tosend);
+
+        }
+
+        public void WriteString(string toWrite)
+        {
+            byte[] bstr = Encoding.UTF8.GetBytes(toWrite);
+            Write(bstr);
+        }
+
+        public byte[] Read()
+        {
+            if (_isInputOpen)
+            {
+                byte[] data = new byte[4096000];
+
+                _inputBuf.CopyTo(data);
+                return data;
+            }
+
+            return null;
+        }
+
+        public void CheckMessage()
+        {
+            try
+            {
+                byte[] read = Read();
+                // byte[] psize = new byte[2];
+                // psize[0] = read[0];
+                // psize[1] = read[1];
+                int length = BitConverter.ToInt32(read, 0);
+
+                byte[] msg = new byte[4096000 - 4];
+
+                Buffer.BlockCopy(read, 4, msg, 0, 4096 - 4);
+
+                //Decode
+                MemoryStream mstr = new MemoryStream(msg);
+                BinaryFormatter bf = new BinaryFormatter();
+                EventPacket ep = bf.Deserialize(mstr) as EventPacket;
+
+                if (ep != _current)
+                    if (ep != null)
+                    {
+                        OnReceivedMessage?.Invoke(ep);
+                    }
+            }
+            catch (Exception ex)
+            {
+                log.Error("Exception in receive:" + ex.Message);
+            }
+        }
+
+
+        void MainCycle()
+        {
+            while (isWorking)
+            {
+                CheckMessage();
+            }
+
+        }
 
 
 
-   
+        public void Dispose()
+        {
+            _isInputOpen = false;
+            _inputBuf.Close();
+            _isOutputOpen = false;
+            _outputBuf.Close();
+        }
+    }
+
+
+
 }

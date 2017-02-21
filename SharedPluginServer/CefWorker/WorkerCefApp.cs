@@ -2,7 +2,7 @@ using Xilium.CefGlue;
 
 namespace SharedPluginServer
 {
-    class WorkerCefApp : CefApp
+    public class WorkerCefApp : CefApp
     {
         private readonly WorkerCefRenderProcessHandler _renderProcessHandler;
 

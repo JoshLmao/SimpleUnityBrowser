@@ -1095,6 +1095,11 @@
         <para>Flag that tells if the connection has been marked as "ready" by a client calling ClientScene.Ready().</para>
       </summary>
     </member>
+    <member name="P:UnityEngine.Networking.NetworkConnection.lastError">
+      <summary>
+        <para>The last error associated with this connection.</para>
+      </summary>
+    </member>
     <member name="F:UnityEngine.Networking.NetworkConnection.lastMessageTime">
       <summary>
         <para>The last time that a message was received on this connection.</para>
@@ -5049,7 +5054,7 @@ All of the player objects in the game are disabled when the host is lost. Then, 
     </member>
     <member name="T:UnityEngine.Networking.SyncVarAttribute">
       <summary>
-        <para>[SyncVar] is an attribute that can be put on member variables of UNeBehaviour classes. These variables will have their values sychronized from the server to clients in the game that are in the ready state.</para>
+        <para>[SyncVar] is an attribute that can be put on member variables of NetworkBehaviour classes. These variables will have their values sychronized from the server to clients in the game that are in the ready state.</para>
       </summary>
     </member>
     <member name="F:UnityEngine.Networking.SyncVarAttribute.hook">

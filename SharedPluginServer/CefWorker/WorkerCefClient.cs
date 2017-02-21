@@ -23,6 +23,7 @@ namespace SharedPluginServer
         private readonly WorkerCefWebRequestHandler _requestHandler;
         private readonly WorkerCefJSDialogHandler _jsDialogHandler;
         private readonly WorkerCefContextMenuHandler _contextMenuHandler;
+        private readonly WorkerCefDragHandler _dragHandler;
 
         private CefWorker _mainWorker;
 
@@ -39,7 +40,7 @@ namespace SharedPluginServer
             _requestHandler=new WorkerCefWebRequestHandler(_mainWorker);
             _jsDialogHandler=new WorkerCefJSDialogHandler(_mainWorker);
             _contextMenuHandler=new WorkerCefContextMenuHandler();
-
+            _dragHandler=new WorkerCefDragHandler();
         }
 
         public void ContinueDialog(bool res, string input)
@@ -60,6 +61,11 @@ namespace SharedPluginServer
         protected override CefJSDialogHandler GetJSDialogHandler()
         {
             return _jsDialogHandler;
+        }
+
+        protected override CefDragHandler GetDragHandler()
+        {
+            return _dragHandler;
         }
 
 
@@ -123,6 +129,8 @@ namespace SharedPluginServer
                 X =x,
                 Y =y,
             };
+
+            
             CefEventFlags modifiers = new CefEventFlags();
             CefMouseButtonType mouse=CefMouseButtonType.Left;
             if (button == MouseButton.Left)
@@ -145,7 +153,16 @@ namespace SharedPluginServer
           
 
             _lifespanHandler.MainBrowser.GetHost().SendMouseClickEvent(mouseEvent,mouse, updown,1);
-            
+
+            //try drag
+           // if (button == MouseButton.Left)
+           // {
+            //    _lifespanHandler.MainBrowser.GetHost().Dr
+           // }
+
+           // _lifespanHandler.MainBrowser.GetHost().Sen
+
+
         }
 
         public void MouseMoveEvent(int x, int y,MouseButton button)
