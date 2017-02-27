@@ -133,7 +133,7 @@ Copy the CEF runtime from the appropriate folder in *third_party* to the *Shared
 |------------- | ---------------|
 |0.1           | Initial version|
 |0.1.1         |Added basic WebRTC support (passes test on https://test.webrtc.org/)|
-
+|0.1.2         | Updated to latest CefGlue and fixed some threading errors |
 
 ##TODOs##
 
