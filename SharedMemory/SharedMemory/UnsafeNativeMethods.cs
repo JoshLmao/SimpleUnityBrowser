@@ -47,7 +47,8 @@ namespace SharedMemory
         //[DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
         //WCH - Unity fix
         // [DllImport("kernel32.dll")]//, EntryPoint = "RtlCopyMemory")]
-#if WIN64
+//#if // WIN64 //TODO
+
         [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
         [SecurityCritical]
         internal static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
@@ -55,12 +56,12 @@ namespace SharedMemory
         [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
         [SecurityCritical]
         internal static extern unsafe void CopyMemoryPtr(void* dest, void* src, uint count);
-#else
-
-        [DllImport("msvcrt.dll", SetLastError = false)]
-        [SecurityCritical]
-        internal static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
-#endif
+//#else
+//
+//        [DllImport("msvcrt.dll", SetLastError = false)]
+//        [SecurityCritical]
+//        internal static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
+//#endif
 
 
         //[DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]

@@ -114,10 +114,10 @@ namespace TestClient
                     StartInfo = new ProcessStartInfo()
                     {
                         WorkingDirectory =
-                            //  @"D:\work\unity\StandaloneConnector\SharedPluginServerClean\UnityClient\Output\x86\PluginServer",
+                           //   @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x86\Debug",
                             @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x64\Debug",
                         FileName =
-                            //@"D:\work\unity\StandaloneConnector\SharedPluginServerClean\UnityClient\Output\x86\PluginServer\SharedPluginServer.exe",
+                           // @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x86\Debug\SharedPluginServer.exe",
                             @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
                         Arguments = args
 
