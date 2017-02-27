@@ -13,11 +13,18 @@ namespace SharedPluginServer
 {
 
     //Main application
-    public class App
+
+        //bug!
+    public class App//:CefApp
     {
         private static readonly log4net.ILog log =
  log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+
+        //CefApp
+      //  private readonly WorkerCefRenderProcessHandler _renderProcessHandler;
+
+        private bool _enableWebRtc = false;
 
         private SharedMemServer _memServer;
 
@@ -33,8 +40,11 @@ namespace SharedPluginServer
         /// <param name="worker">Main CEF worker</param>
         /// <param name="memServer">Shared memory file</param>
         /// <param name="commServer">TCP server</param>
-        public App(CefWorker worker, SharedMemServer memServer, SocketServer commServer)
+        public App(CefWorker worker, SharedMemServer memServer, SocketServer commServer,bool enableWebRtc)
         {
+        //    _renderProcessHandler = new WorkerCefRenderProcessHandler();
+            _enableWebRtc = enableWebRtc;
+
             _memServer = memServer;
             _mainWorker = worker;
             _controlServer = commServer;
@@ -56,6 +66,30 @@ namespace SharedPluginServer
             _exitTimer.Start();
         }
 
+      /*  protected override CefRenderProcessHandler GetRenderProcessHandler()
+        {
+            return _renderProcessHandler;
+        }
+
+        protected override void OnBeforeCommandLineProcessing(string processType, CefCommandLine commandLine)
+        {
+            if (string.IsNullOrEmpty(processType))
+            {
+                // commandLine.AppendSwitch("enable-webrtc");
+                commandLine.AppendSwitch("disable-gpu");
+                commandLine.AppendSwitch("disable-gpu-compositing");
+                commandLine.AppendSwitch("enable-begin-frame-scheduling");
+                commandLine.AppendSwitch("disable-smooth-scrolling");
+                if (_enableWebRtc)
+                {
+                    commandLine.AppendSwitch("enable-media-stream", "true");
+
+                }
+
+            }
+            //commandLine.AppendArgument("--enable-media-stream");
+        }
+*/
         private void _mainWorker_OnPageLoaded(string url, int status)
         {
            // log.Info("Navigated to:"+url);
@@ -77,6 +111,7 @@ namespace SharedPluginServer
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
 
+            //DEBUG
             _controlServer.Client.SendData(mstr.GetBuffer());
         }
 
@@ -295,6 +330,8 @@ namespace SharedPluginServer
         private static readonly log4net.ILog log =
 log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+
+
         /// <summary>
         /// The main entry point for the application.
         /// args:
@@ -306,24 +343,34 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// WebRTC?1:0
         /// </summary>
         [STAThread]
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            
+           
+
             log.Info("===============START================");
 
-           // if (args.Length > 0)
-           /* {
-                string msg = "";
-                foreach (var s in args)
-                {
-                    msg = msg + ";" + s;
-                }
-                log.Info("ARGS:" + msg);
+            //////// CEF RUNTIME
+            try
+            {
+                CefRuntime.Load();
+            }
+            catch (DllNotFoundException ex)
+            {
+                log.ErrorFormat("{0} error", ex.Message);
+            }
+            catch (CefRuntimeException ex)
+            {
+                log.ErrorFormat("{0} error", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("{0} error", ex.Message);
 
-            }*/
-            //args = new string[] { "--enable-media-stream" };
+            }
 
-            
+           
+
+
             int defWidth = 1280;
             int defHeight = 720;
             //string defUrl = "http://www.google.com";
@@ -358,36 +405,28 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             {
 
             
-            //////// CEF RUNTIME
-            try
-            {
-                CefRuntime.Load();
-            }
-            catch (DllNotFoundException ex)
-            {
-                log.ErrorFormat("{0} error", ex.Message);
-            }
-            catch (CefRuntimeException ex)
-            {
-                log.ErrorFormat("{0} error", ex.Message);
-            }
-            catch (Exception ex)
-            {
-                log.ErrorFormat("{0} error", ex.Message);
-
-            }
+            
 
 
 
            
                 CefMainArgs cefMainArgs;
                 cefMainArgs = new CefMainArgs(args);
-                var cefApp = new WorkerCefApp(useWebRTC);
+var cefApp = new WorkerCefApp(useWebRTC);
 
-            if (CefRuntime.ExecuteProcess(cefMainArgs, cefApp) != -1)
+
+                
+
+                
+
+               
+
+                int exit_code = CefRuntime.ExecuteProcess(cefMainArgs, cefApp,IntPtr.Zero);
+
+            if ( exit_code>=0)
             {
-                log.ErrorFormat("CefRuntime could not the secondary process.");
-                return;
+                    log.ErrorFormat("CefRuntime return "+exit_code);
+                    return exit_code;
             }
             var cefSettings = new CefSettings
             {
@@ -402,7 +441,9 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
             try
             {
-                CefRuntime.Initialize(cefMainArgs, cefSettings, cefApp, IntPtr.Zero);
+                    
+              CefRuntime.Initialize(cefMainArgs, cefSettings, cefApp, IntPtr.Zero);
+                   
             }
             catch (CefRuntimeException ex)
             {
@@ -419,21 +460,24 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
 
 
-            CefWorker worker =new CefWorker();
-              worker.Init(defWidth,defHeight,defUrl);
-           
-            SharedMemServer server=new SharedMemServer();
-            server.Init(defWidth*defHeight*4,defFileName);
+                CefWorker worker = new CefWorker();
+                worker.Init(defWidth, defHeight, defUrl);
 
-           
-            SocketServer ssrv=new SocketServer();
-            ssrv.Init(defPort);
+                SharedMemServer server = new SharedMemServer();
+                server.Init(defWidth * defHeight * 4, defFileName);
 
-            var app=new App(worker,server,ssrv);
-          
-            Application.Run();
+
+                SocketServer ssrv = new SocketServer();
+                ssrv.Init(defPort);
+            
+var app = new App(worker, server, ssrv,false);
+
+           Application.Run();
+            //CefRuntime.RunMessageLoop();
 
             CefRuntime.Shutdown();
+
+            return 0;
 
         }
     }

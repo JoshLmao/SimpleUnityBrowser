@@ -14,7 +14,7 @@ namespace SharedPluginServer
             _mainWorker = mainWorker;
         }
 
-        protected override void OnLoadStart(CefBrowser browser, CefFrame frame)
+        protected override void OnLoadStart(CefBrowser browser, CefFrame frame, CefTransitionType transitionType)
         {
            
         }

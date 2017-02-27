@@ -19,6 +19,18 @@ namespace SharedPluginServer
 
         public SharedMemServer _memServer = null;
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="windowWidth"></param>
+        /// <param name="windowHeight"></param>
+        /// 
+       protected override void OnImeCompositionRangeChanged(CefBrowser browser, CefRange selectedRange, CefRectangle[] characterBounds)
+        {
+
+        }
+
         public WorkerCefRenderHandler(int windowWidth, int windowHeight)
         {
             

@@ -84,6 +84,26 @@ namespace SimpleWebBrowser
 
         #region Init
 
+        //A really hackish way to avoid thread error. Should be better way
+        public bool ConnectTcp(out TcpClient tcp)
+        {
+            TcpClient ret = null;
+            try
+            {
+                ret = new TcpClient("127.0.0.1", _port);
+            }
+            catch (Exception ex)
+            {
+                tcp = null;
+                return false;
+            }
+
+            tcp = ret;
+            return true;
+
+        }
+
+
         public void InitPlugin(int width, int height, string sharedfilename, int port, string initialURL,bool enableWebRTC)
         {
 
@@ -137,29 +157,35 @@ namespace SimpleWebBrowser
 
             string args = BuildParamsString();
 
-            try
+            bool connected = false;
+            while (!connected)
             {
-                _pluginProcess = new Process()
+                try
                 {
-                    StartInfo = new ProcessStartInfo()
+                    _pluginProcess = new Process()
                     {
-                        WorkingDirectory = PluginServerPath,
-                        FileName = PluginServerPath + @"\SharedPluginServer.exe",
-                        Arguments = args
+                        StartInfo = new ProcessStartInfo()
+                        {
+                            WorkingDirectory = PluginServerPath,
+                            FileName = PluginServerPath + @"\SharedPluginServer.exe",
+                            Arguments = args
 
-                    }
-                };
+                        }
+                    };
 
 
 
-                _pluginProcess.Start();
-                Initialized = false;
-            }
-            catch (Exception ex)
-            {
-                //log the file
-                Debug.Log("FAILED TO START SERVER FROM:" + PluginServerPath + @"\SharedPluginServer.exe");
-                throw;
+                    _pluginProcess.Start();
+                    Initialized = false;
+                }
+                catch (Exception ex)
+                {
+                    //log the file
+                    Debug.Log("FAILED TO START SERVER FROM:" + PluginServerPath + @"\SharedPluginServer.exe");
+                    throw;
+                }
+
+                connected = ConnectTcp(out _clientSocket);
             }
 
 
@@ -411,6 +437,9 @@ namespace SimpleWebBrowser
 
         #endregion
 
+        
+
+
 
         public void UpdateTexture()
         {
@@ -464,7 +493,7 @@ namespace SimpleWebBrowser
 
 
                             //Connect
-                            _clientSocket = new TcpClient("127.0.0.1", _port);
+                           // _clientSocket = new TcpClient("127.0.0.1", _port);
                             //start listen
                             _clientSocket.GetStream()
                                 .BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);

@@ -105,7 +105,7 @@ namespace SharedPluginServer
                 var cefBrowserSettings = new CefBrowserSettings();
 
                 cefBrowserSettings.JavaScript=CefState.Enabled;
-                cefBrowserSettings.CaretBrowsing=CefState.Enabled;
+                //cefBrowserSettings.CaretBrowsing=CefState.Enabled;
                 cefBrowserSettings.TabToLinks=CefState.Enabled;
                 cefBrowserSettings.WebSecurity=CefState.Disabled;
                 cefBrowserSettings.WebGL=CefState.Enabled;

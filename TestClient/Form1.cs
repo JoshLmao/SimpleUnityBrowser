@@ -64,6 +64,24 @@ namespace TestClient
         }
 
 
+        public bool ConnectTcp(out TcpClient tcp)
+        {
+            TcpClient ret = null;
+            try
+            {
+                ret = new TcpClient("127.0.0.1", port);
+            }
+            catch (Exception ex)
+            {
+                tcp = null;
+                return false;
+            }
+
+            tcp = ret;
+            return true;
+
+        }
+
         public void Init()
         {
 
@@ -87,42 +105,57 @@ namespace TestClient
             args = args + port.ToString()+" ";
             args = args + "1";//webrtc
 #endif
+            bool connected = false;
 
-
-            Process pluginProcess = new Process()
+            while (!connected)
             {
-                StartInfo = new ProcessStartInfo()
+                Process pluginProcess = new Process()
                 {
-                    WorkingDirectory =
-                        //  @"D:\work\unity\StandaloneConnector\SharedPluginServerClean\UnityClient\Output\x86\PluginServer",
-                        @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x64\Debug",
-                    FileName =
-                     //@"D:\work\unity\StandaloneConnector\SharedPluginServerClean\UnityClient\Output\x86\PluginServer\SharedPluginServer.exe",
-                        @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
-                    Arguments = args
-                    
+                    StartInfo = new ProcessStartInfo()
+                    {
+                        WorkingDirectory =
+                            //  @"D:\work\unity\StandaloneConnector\SharedPluginServerClean\UnityClient\Output\x86\PluginServer",
+                            @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x64\Debug",
+                        FileName =
+                            //@"D:\work\unity\StandaloneConnector\SharedPluginServerClean\UnityClient\Output\x86\PluginServer\SharedPluginServer.exe",
+                            @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
+                        Arguments = args
+
+                    }
+                };
+                pluginProcess.Start();
+                //Thread.Sleep(10000);
+                // while (!Process.GetProcesses().Any(p => p.Name == myName)) { Thread.Sleep(100); }
+
+                bool found_proc = false;
+                while (!found_proc)
+                {
+                    foreach (Process clsProcess in Process.GetProcesses())
+                        if (clsProcess.ProcessName == pluginProcess.ProcessName)
+                            found_proc = true;
+
+                    Thread.Sleep(1000);
                 }
-            };
-            pluginProcess.Start();
-            //Thread.Sleep(10000);
-            // while (!Process.GetProcesses().Any(p => p.Name == myName)) { Thread.Sleep(100); }
 
-            bool found_proc = false;
-            while (!found_proc)
-            {
-                foreach (Process clsProcess in Process.GetProcesses())
-                    if (clsProcess.ProcessName == pluginProcess.ProcessName)
-                        found_proc = true;
 
-                Thread.Sleep(1000);
+
+                //Connect
+                IPAddress ip = IPAddress.Parse("127.0.0.1");
+                //clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                /* try
+                 {
+                     clientSocket = new TcpClient("127.0.0.1", port);
+                 }
+                 catch(Exception ex)
+                 {
+                     connected = false;
+                     break;
+                 }
+                 connected = true;*/
+
+                connected = ConnectTcp(out clientSocket);
             }
-
             arr = new SharedArray<byte>(memfile);
-
-            //Connect
-            IPAddress ip = IPAddress.Parse("127.0.0.1");
-            //clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            clientSocket=new TcpClient("127.0.0.1", port);
 
             //clientSocket.Connect(new IPEndPoint(ip, port));
 
