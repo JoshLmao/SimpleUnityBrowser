@@ -1,6 +1,8 @@
 # Simple Unity browser #
 
 This is a simple embedded browser plugin. It is based on CefGlue, and using a background process to render web pages. 
+
+The plugin was developed initially for some projects of [Jedium](https://jedium.com/), but we decided to open-source it.
     
   | 
 ------------- | -------------
