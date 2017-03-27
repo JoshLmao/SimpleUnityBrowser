@@ -26,5 +26,12 @@ namespace MessageLibrary
         //reply
         public bool success;
         public string input;
+
+        /*protected override bool Compare(AbstractEvent ev2)
+        {
+            DialogEvent ge = ev2 as DialogEvent;
+
+            return (Type==ge.Type&&Message==ge.Message&&DefaultPrompt==ge.DefaultPrompt&&success==ge.success&&input==ge.input);
+        }*/
     }
 }

@@ -334,7 +334,7 @@ namespace SimpleWebBrowser
 
                 if (pixelUV.x > 0)
                 {
-                    SendMouseButtonEvent((int) pixelUV.x, (int) pixelUV.y, MouseButton.Left, MouseEventType.ButtonUp);
+                   SendMouseButtonEvent((int) pixelUV.x, (int) pixelUV.y, MouseButton.Left, MouseEventType.ButtonUp);
                 }
             }
         }
@@ -378,9 +378,9 @@ namespace SimpleWebBrowser
 
                     //check other buttons...
                     if (Input.GetMouseButtonDown(1))
-                        SendMouseButtonEvent(px, py, MouseButton.Right, MouseEventType.ButtonDown);
+                       SendMouseButtonEvent(px, py, MouseButton.Right, MouseEventType.ButtonDown);
                     if (Input.GetMouseButtonUp(1))
-                        SendMouseButtonEvent(px, py, MouseButton.Right, MouseEventType.ButtonUp);
+                       SendMouseButtonEvent(px, py, MouseButton.Right, MouseEventType.ButtonUp);
                     if (Input.GetMouseButtonDown(2))
                         SendMouseButtonEvent(px, py, MouseButton.Middle, MouseEventType.ButtonDown);
                     if (Input.GetMouseButtonUp(2))
@@ -417,8 +417,9 @@ namespace SimpleWebBrowser
 
         }
 
-        private void SendMouseButtonEvent(int x, int y, MouseButton btn, MouseEventType type)
+       void SendMouseButtonEvent(int x, int y, MouseButton btn, MouseEventType type)
         {
+           
             MouseMessage msg = new MouseMessage
             {
                 Type = type,
@@ -464,13 +465,18 @@ namespace SimpleWebBrowser
 
         #endregion
 
+        private void FixedUpdate()
+        {
+            _mainEngine.PushMessages(); //
+        }
+
         // Update is called once per frame
         void Update()
         {
 
             _mainEngine.UpdateTexture();
 
-
+           
 
             //Dialog
             if (_showDialog)
@@ -511,6 +517,9 @@ namespace SimpleWebBrowser
 
 
             }
+
+
+            _mainEngine.CheckMessage();
 
         }
 

@@ -14,12 +14,13 @@ using System.Windows.Forms;
 //using SharedMemory;
 using System.IO.Pipes;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
+//using System.Net;
+//using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using SharedMemory;
+using SharedPluginServer.Interprocess;
 using log4net;
 using MessageLibrary;
 
@@ -41,17 +42,21 @@ namespace TestClient
         private int posX = 0;
         private int posY = 0;
 
-        private TcpClient clientSocket;
+       // private TcpClient clientSocket;
 
         //  private Queue<MouseMessage> _sendEvents; 
 
         private SharedArray<byte> arr; //= new SharedArray<byte>("MainSharedMem");
 
+        private SharedCommServer _inCommServer;
+        private SharedCommServer _outCommServer;
+
         private Bitmap _texture;
 
         public string memfile= "MainSharedMem";
 
-        public int port = 8885;
+        public string inMemFile = "OutSharedMem"; //Inverted
+        public string outMemFile = "InSharedMem";
 
         private bool _inModalDialog = false;
 
@@ -64,23 +69,7 @@ namespace TestClient
         }
 
 
-        public bool ConnectTcp(out TcpClient tcp)
-        {
-            TcpClient ret = null;
-            try
-            {
-                ret = new TcpClient("127.0.0.1", port);
-            }
-            catch (Exception ex)
-            {
-                tcp = null;
-                return false;
-            }
-
-            tcp = ret;
-            return true;
-
-        }
+        
 
         public void Init()
         {
@@ -98,14 +87,22 @@ namespace TestClient
 
             memfile = memid.ToString();
             args = args + memfile + " ";
-          Random r=new Random();
-            port = 8880 + r.Next(10);
 
-         
-            args = args + port.ToString()+" ";
+            Guid inID = Guid.NewGuid();
+            outMemFile = inID.ToString();
+            args = args + outMemFile + " ";
+
+            Guid outID = Guid.NewGuid();
+            inMemFile = outID.ToString();
+            args = args + inMemFile + " ";
+
+
             args = args + "1";//webrtc
 #endif
             bool connected = false;
+
+            _inCommServer = new SharedCommServer(false);
+            _outCommServer = new SharedCommServer(true);
 
             while (!connected)
             {
@@ -138,29 +135,19 @@ namespace TestClient
                 }
 
 
+                _inCommServer.Connect(inMemFile);
+                bool b1 = _inCommServer.GetIsOpen();
+                _outCommServer.Connect(outMemFile);
+                bool b2 = _outCommServer.GetIsOpen();
 
-                //Connect
-                IPAddress ip = IPAddress.Parse("127.0.0.1");
-                //clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                /* try
-                 {
-                     clientSocket = new TcpClient("127.0.0.1", port);
-                 }
-                 catch(Exception ex)
-                 {
-                     connected = false;
-                     break;
-                 }
-                 connected = true;*/
-
-                connected = ConnectTcp(out clientSocket);
+                connected = b1 && b2;
+               
             }
             arr = new SharedArray<byte>(memfile);
 
             //clientSocket.Connect(new IPEndPoint(ip, port));
 
-            //Receive
-            this.clientSocket.GetStream().BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
+            
 #if USE_ARGS
             _texture = new Bitmap(pictureBox1.Width, pictureBox1.Width);
 #else
@@ -172,22 +159,17 @@ namespace TestClient
         }
 
 
-        private void StreamReceiver(IAsyncResult ar)
+        private void CheckMessage()
         {
-            int BytesRead;
+
+            //push
+            _outCommServer.PushMessages();
 
             try
             {
-                // Ensure that no other threads try to use the stream at the same time.
-                lock (clientSocket.GetStream())
-                {
-                    // Finish asynchronous read into readBuffer and get number of bytes read.
-                    BytesRead = clientSocket.GetStream().EndRead(ar);
-                }
-               
-                MemoryStream mstr = new MemoryStream(readBuffer);
-                BinaryFormatter bf = new BinaryFormatter();
-                EventPacket ep = bf.Deserialize(mstr) as EventPacket;
+
+
+                EventPacket ep = _inCommServer.GetMessage();
                 if (ep != null)
                 {
                    // if (ep.Type == BrowserEventType.Ping)
@@ -245,17 +227,13 @@ namespace TestClient
                     }
                 }
 
-                // Ensure that no other threads try to use the stream at the same time.
-                   lock (clientSocket.GetStream())
-                {
-                    // Start a new asynchronous read into readBuffer.
-                    clientSocket.GetStream()
-                        .BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
-                }
+                
             }
             catch (Exception e)
             {
             }
+
+           
         }
 
         public void SendDialogResponse(bool ok)
@@ -279,10 +257,7 @@ namespace TestClient
             byte[] b = mstr.GetBuffer();
 
             //
-            lock (clientSocket.GetStream())
-            {
-                clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteBytes(b);
 
         }
 
@@ -306,10 +281,7 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
-            {
-                clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteBytes(b);
         }
 
 
@@ -331,6 +303,7 @@ namespace TestClient
 
             //Query message
             //clientSocket.Receive()
+            CheckMessage();
 
         }
 
@@ -340,7 +313,7 @@ namespace TestClient
         {
             SendShutdownEvent();
             Application.Idle -= Application_Idle;
-            clientSocket.Close();
+           
             
         }
 
@@ -364,10 +337,7 @@ namespace TestClient
                 byte[] b = mstr.GetBuffer();
 
                 //
-                lock (clientSocket.GetStream())
-                {
-                    clientSocket.GetStream().Write(b, 0, b.Length);
-                }
+                _outCommServer.WriteBytes(b);
             }
             //  MessageBox.Show(_sendEvents.Count.ToString());
         }
@@ -391,17 +361,14 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
-            {
-                clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteBytes(b);
             //  MessageBox.Show(_sendEvents.Count.ToString());
 
         }
 
         public void SendPing()
         {
-            GenericEvent ge = new GenericEvent()
+          /*  GenericEvent ge = new GenericEvent()
             {
                 Type = GenericEventType.Navigate, //could be any
                 GenericType = BrowserEventType.Ping,
@@ -419,10 +386,7 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
-            {
-                clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteBytes(b);*/
         }
 
         public void SendNavigateEvent(string url,bool back,bool forward)
@@ -450,10 +414,7 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
-            {
-                clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteBytes(b);
             //  MessageBox.Show(_sendEvents.Count.ToString());
         }
 
@@ -477,10 +438,7 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
-            {
-                clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteBytes(b);
             //  MessageBox.Show(_sendEvents.Count.ToString());
         }
 
@@ -503,10 +461,7 @@ namespace TestClient
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
             //
-            lock (clientSocket.GetStream())
-            {
-                clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteBytes(b);
             //  MessageBox.Show(_sendEvents.Count.ToString());
         }
 
@@ -604,7 +559,12 @@ namespace TestClient
 
         private void Form1_Load(object sender, EventArgs e)
         {
-          
+            this.BringToFront();
+            this.Focus();
+            this.KeyPreview = true;
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
+            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.Form1_KeyPress);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
         }
 
         
@@ -651,14 +611,15 @@ namespace TestClient
         {
             if (e.KeyCode == Keys.Enter)
             {
-                SendNavigateEvent(textBox1.Text,false,false);
+                //SendNavigateEvent(textBox1.Text,false,false);
             }
         }
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            SendExecuteJSEvent("alert('Hello world');");
-          //SendPing();
+            // SendExecuteJSEvent("alert('Hello world');");
+            //SendPing();
+            SendNavigateEvent("http://www.yandex.ru", false, false);
         }
 
         private void button2_Click(object sender, EventArgs e)

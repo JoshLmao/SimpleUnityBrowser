@@ -90,6 +90,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SharedPluginServer\Interprocess\SharedCommServer.cs">
+      <Link>SharedCommServer.cs</Link>
+    </Compile>
+    <Compile Include="..\SharedPluginServer\Interprocess\SharedMemServer.cs">
+      <Link>SharedMemServer.cs</Link>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

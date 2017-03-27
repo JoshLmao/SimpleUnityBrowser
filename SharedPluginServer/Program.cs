@@ -28,11 +28,15 @@ namespace SharedPluginServer
 
         private SharedMemServer _memServer;
 
-        private SocketServer _controlServer;
+        //private SocketServer _controlServer;
+        private SharedCommServer _inCommServer;
+        private SharedCommServer _outCommServer;
 
         private CefWorker _mainWorker;
 
         private System.Windows.Forms.Timer _exitTimer;
+
+        public bool IsRunning;
 
         /// <summary>
         /// App constructor
@@ -40,14 +44,17 @@ namespace SharedPluginServer
         /// <param name="worker">Main CEF worker</param>
         /// <param name="memServer">Shared memory file</param>
         /// <param name="commServer">TCP server</param>
-        public App(CefWorker worker, SharedMemServer memServer, SocketServer commServer,bool enableWebRtc)
+       // public App(CefWorker worker, SharedMemServer memServer, SocketServer commServer,bool enableWebRtc)
+        public App(CefWorker worker, SharedMemServer memServer, SharedCommServer inServer,SharedCommServer outServer, bool enableWebRtc)
         {
         //    _renderProcessHandler = new WorkerCefRenderProcessHandler();
             _enableWebRtc = enableWebRtc;
 
             _memServer = memServer;
             _mainWorker = worker;
-            _controlServer = commServer;
+            //_controlServer = commServer;
+            _inCommServer = inServer;
+            _outCommServer = outServer;
 
             _mainWorker.SetMemServer(_memServer);
 
@@ -58,38 +65,27 @@ namespace SharedPluginServer
             //attach page events
             _mainWorker.OnPageLoaded += _mainWorker_OnPageLoaded;
 
-            SocketServer.OnReceivedMessage += HandleMessage;
+            //  SocketServer.OnReceivedMessage += HandleMessage;
 
-            _exitTimer=new Timer();
+            IsRunning = true;
+
+           _exitTimer=new Timer();
             _exitTimer.Interval = 10000;
             _exitTimer.Tick += _exitTimer_Tick;
             _exitTimer.Start();
         }
 
-      /*  protected override CefRenderProcessHandler GetRenderProcessHandler()
+        public void CheckMessage()
         {
-            return _renderProcessHandler;
+            _outCommServer.PushMessages();
+
+            EventPacket ep = _inCommServer.GetMessage();
+            if (ep != null)
+                HandleMessage(ep);
+           
         }
 
-        protected override void OnBeforeCommandLineProcessing(string processType, CefCommandLine commandLine)
-        {
-            if (string.IsNullOrEmpty(processType))
-            {
-                // commandLine.AppendSwitch("enable-webrtc");
-                commandLine.AppendSwitch("disable-gpu");
-                commandLine.AppendSwitch("disable-gpu-compositing");
-                commandLine.AppendSwitch("enable-begin-frame-scheduling");
-                commandLine.AppendSwitch("disable-smooth-scrolling");
-                if (_enableWebRtc)
-                {
-                    commandLine.AppendSwitch("enable-media-stream", "true");
-
-                }
-
-            }
-            //commandLine.AppendArgument("--enable-media-stream");
-        }
-*/
+     
         private void _mainWorker_OnPageLoaded(string url, int status)
         {
            // log.Info("Navigated to:"+url);
@@ -112,7 +108,8 @@ namespace SharedPluginServer
             bf.Serialize(mstr, ep);
 
             //DEBUG
-            _controlServer.Client.SendData(mstr.GetBuffer());
+            //_controlServer.Client.SendData(mstr.GetBuffer());
+            _outCommServer.WriteBytes(mstr.GetBuffer());
         }
 
         //shut down by timer, in case of client crash/hang
@@ -122,15 +119,17 @@ namespace SharedPluginServer
             {
                 log.Info("Exiting by timer,timeout:"+_exitTimer.Interval);
                 log.Info("==============SHUTTING DOWN==========");
-                SocketServer.OnReceivedMessage -= HandleMessage;
+              //  SocketServer.OnReceivedMessage -= HandleMessage;
                 _mainWorker.Shutdown();
 
                 _memServer.Dispose();
 
-                _controlServer.Shutdown();
+                //_controlServer.Shutdown();
+                _inCommServer.Dispose();
+                _outCommServer.Dispose();
 
-
-                Application.Exit();
+                IsRunning = false;
+              //  Application.Exit();
 
             }
             catch (Exception ex)
@@ -159,7 +158,8 @@ namespace SharedPluginServer
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
 
-            _controlServer.Client.SendData(mstr.GetBuffer());
+            //_controlServer.Client.SendData(mstr.GetBuffer());
+            _outCommServer.WriteBytes(mstr.GetBuffer());
         }
 
         private void _mainWorker_OnJSDialog(string message, string prompt, DialogEventType type)
@@ -182,7 +182,8 @@ namespace SharedPluginServer
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
 
-            _controlServer.Client.SendData(mstr.GetBuffer());
+            //_controlServer.Client.SendData(mstr.GetBuffer());
+            _outCommServer.WriteBytes(mstr.GetBuffer());
         }
 
         /// <summary>
@@ -191,10 +192,12 @@ namespace SharedPluginServer
         /// <param name="msg">Message from client app</param>
         public void HandleMessage(EventPacket msg)
         {
-          
+
             //reset timer
-            _exitTimer.Stop();
-            _exitTimer.Start();
+               _exitTimer.Stop();
+              _exitTimer.Start();
+
+         
 
             switch (msg.Type)
             {
@@ -216,17 +219,19 @@ namespace SharedPluginServer
                                 try
                                 {
                                     log.Info("==============SHUTTING DOWN==========");
-                                    SocketServer.OnReceivedMessage -= HandleMessage;
+                                   // SocketServer.OnReceivedMessage -= HandleMessage;
                                        _mainWorker.Shutdown();
                                     
                                      _memServer.Dispose();
-                                  
-                                    _controlServer.Shutdown();
-                                     
-                                            
-                                            Application.Exit();
-                                  
-                                }
+
+                                            // _controlServer.Shutdown();
+                                            _outCommServer.Dispose();
+                                            _inCommServer.Dispose();
+
+                                            IsRunning = false;
+                                            // Application.Exit();
+
+                                        }
                                 catch (Exception e)
                                 {
 
@@ -277,6 +282,9 @@ namespace SharedPluginServer
                 case BrowserEventType.Keyboard:
                 {
                         KeyboardEvent keyboardEvent=msg.Event as KeyboardEvent;
+
+                        log.Debug("_________KEYBOARD EVENT:" + keyboardEvent.Type + ";" + keyboardEvent.Key);
+
                     if (keyboardEvent != null)
                     {
                         if (keyboardEvent.Type != KeyboardEventType.Focus)
@@ -292,6 +300,8 @@ namespace SharedPluginServer
                         MouseMessage mouseMessage=msg.Event as MouseMessage;
                         if (mouseMessage != null)
                         {
+                           /// log.Debug("___MOUSE EVENT:" + mouseMessage.Type + "," + mouseMessage.X + "," + mouseMessage.Y + "," + mouseMessage.Button);
+
                             switch (mouseMessage.Type)
                             {
                                 case MouseEventType.ButtonDown:
@@ -376,7 +386,11 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             //string defUrl = "http://www.google.com";
             string defUrl = "http://test.webrtc.org";
             string defFileName = "MainSharedMem";
-            int defPort = 8885;
+
+            string defInFileName = "InSharedMem";
+            string defOutFileName = "OutSharedMem";
+
+           // int defPort = 8885;
             bool useWebRTC = false;
             if (args.Length>0&&args[0] != "--type=renderer")
             {
@@ -392,14 +406,16 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 if (args.Length > 3)
                     defFileName = args[3];
                 if (args.Length > 4)
-                    defPort = Int32.Parse(args[4]);
-                if(args.Length>5)
-                    if (args[5] == "1")
+                    defInFileName = args[4];
+                if (args.Length > 5)
+                    defOutFileName = args[5];
+                if (args.Length>6)
+                    if (args[6] == "1")
                         useWebRTC = true;
             }
 
-            log.InfoFormat("Starting plugin, settings:width:{0},height:{1},url:{2},memfile:{3},port:{4}",
-                defWidth, defHeight, defUrl, defFileName, defPort);
+            log.InfoFormat("Starting plugin, settings:width:{0},height:{1},url:{2},memfile:{3},inMem:{4},outMem:{5}, WebRtc:{6}",
+                defWidth, defHeight, defUrl, defFileName,defInFileName,defOutFileName, useWebRTC);
 
             try
             {
@@ -467,12 +483,24 @@ var cefApp = new WorkerCefApp(useWebRTC);
                 server.Init(defWidth * defHeight * 4, defFileName);
 
 
-                SocketServer ssrv = new SocketServer();
-                ssrv.Init(defPort);
-            
-var app = new App(worker, server, ssrv,false);
+            // SocketServer ssrv = new SocketServer();
+            // ssrv.Init(defPort);
+            SharedCommServer inSrv = new SharedCommServer(false);
 
-           Application.Run();
+            //TODO: the sizes may vary, but 10k should be enough?
+            inSrv.InitComm(10000, defInFileName);
+
+            SharedCommServer outSrv = new SharedCommServer(true);
+            outSrv.InitComm(10000, defOutFileName);
+
+            var app = new App(worker, server, inSrv, outSrv, false);
+
+           //Application.Run();
+           while(app.IsRunning)
+            {
+                Application.DoEvents();
+                app.CheckMessage();
+            }
             //CefRuntime.RunMessageLoop();
 
             CefRuntime.Shutdown();

@@ -515,6 +515,8 @@ namespace SimpleWebBrowser
 
             _mainEngine.UpdateTexture();
 
+            _mainEngine.CheckMessage();
+
             #region 2D mouse
 
             if (Browser2D != null)
