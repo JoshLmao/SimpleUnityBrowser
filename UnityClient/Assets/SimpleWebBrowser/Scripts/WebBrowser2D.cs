@@ -27,13 +27,12 @@ namespace SimpleWebBrowser
 
         public bool RandomMemoryFile = true;
 
-        [Range(8000f, 9000f)] public int Port = 8885;
-
-        public bool RandomPort = true;
-
         public string InitialURL = "http://www.google.com";
 
         public bool EnableWebRTC = false;
+
+        [Header("Testing")]
+        public bool EnableGPU = false;
 
         [Multiline]
         public string JSInitializationCode = "";
@@ -144,13 +143,8 @@ namespace SimpleWebBrowser
                 Guid memid = Guid.NewGuid();
                 MemoryFile = memid.ToString();
             }
-            if (RandomPort)
-            {
-                System.Random r = new System.Random();
-                Port = 8000 + r.Next(1000);
-            }
             
-            _mainEngine.InitPlugin(Width, Height, MemoryFile, Port, InitialURL,EnableWebRTC);
+            _mainEngine.InitPlugin(Width, Height, MemoryFile, InitialURL,EnableWebRTC,EnableGPU);
             //run initialization
             if (JSInitializationCode.Trim() != "")
                 _mainEngine.RunJSOnce(JSInitializationCode);

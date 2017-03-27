@@ -62,6 +62,7 @@ namespace SimpleWebBrowser
 
         private string _initialURL;
         private bool _enableWebRTC;
+        private bool _enableGPU;
 
         #endregion
 
@@ -105,7 +106,7 @@ namespace SimpleWebBrowser
         }*/
 
 
-        public void InitPlugin(int width, int height, string sharedfilename, int port, string initialURL,bool enableWebRTC)
+        public void InitPlugin(int width, int height, string sharedfilename,string initialURL,bool enableWebRTC,bool enableGPU)
         {
 
             //Initialization (for now) requires a predefined path to PluginServer,
@@ -154,6 +155,7 @@ namespace SimpleWebBrowser
 
             _initialURL = initialURL;
             _enableWebRTC = enableWebRTC;
+            _enableGPU = enableGPU;
 
             if (BrowserTexture == null)
                 BrowserTexture = new Texture2D(kWidth, kHeight, TextureFormat.BGRA32, false);
@@ -219,9 +221,14 @@ namespace SimpleWebBrowser
             ret = ret + _inCommFile + " ";
 
             if (_enableWebRTC)
-                ret = ret + " 1";
+                ret = ret + " 1"+" ";
             else
-                ret = ret + " 0";
+                ret = ret + " 0"+" ";
+
+            if(_enableGPU)
+                ret = ret + " 1" + " ";
+            else
+                ret = ret + " 0" + " ";
 
             return ret;
         }

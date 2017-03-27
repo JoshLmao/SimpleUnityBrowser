@@ -341,6 +341,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// in memory comm file name,
         /// out memory comm file name,
         /// WebRTC?1:0
+        /// Enable GPU? 1:0
         /// </summary>
         [STAThread]
         static int Main(string[] args)
@@ -380,6 +381,9 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             string defOutFileName = "OutSharedMem";
 
             bool useWebRTC = false;
+
+            bool EnableGPU = false;
+
             if (args.Length>0&&args[0] != "--type=renderer")
             {
                
@@ -400,17 +404,20 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 if (args.Length>6)
                     if (args[6] == "1")
                         useWebRTC = true;
+                if (args.Length > 7)
+                    if (args[7] == "1")
+                        EnableGPU = true;
             }
 
-            log.InfoFormat("Starting plugin, settings:width:{0},height:{1},url:{2},memfile:{3},inMem:{4},outMem:{5}, WebRtc:{6}",
-                defWidth, defHeight, defUrl, defFileName,defInFileName,defOutFileName, useWebRTC);
+            log.InfoFormat("Starting plugin, settings:width:{0},height:{1},url:{2},memfile:{3},inMem:{4},outMem:{5}, WebRtc:{6},Enable GPU:{7}",
+                defWidth, defHeight, defUrl, defFileName,defInFileName,defOutFileName, useWebRTC,EnableGPU);
 
             try
             {
 
              CefMainArgs cefMainArgs;
                 cefMainArgs = new CefMainArgs(args);
-             var cefApp = new WorkerCefApp(useWebRTC);
+             var cefApp = new WorkerCefApp(useWebRTC,EnableGPU);
 
              
 

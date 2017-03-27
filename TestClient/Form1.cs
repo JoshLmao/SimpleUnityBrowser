@@ -97,7 +97,9 @@ namespace TestClient
             args = args + inMemFile + " ";
 
 
-            args = args + "1";//webrtc
+            args = args + "1"+" ";//webrtc
+
+            args = args + "1"; //gpu
 #endif
             bool connected = false;
 
