@@ -17,5 +17,12 @@ namespace MessageLibrary
     {
         public KeyboardEventType Type;
         public int Key;
+
+        /*protected override bool Compare(AbstractEvent ev2)
+        {
+           KeyboardEvent ge = ev2 as KeyboardEvent;
+
+            return (Type == ge.Type && Key==ge.Key);
+        }*/
     }
 }

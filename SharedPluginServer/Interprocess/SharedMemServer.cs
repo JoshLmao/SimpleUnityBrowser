@@ -12,8 +12,8 @@ namespace SharedPluginServer
 
         public string Filename;
 
-    //    private static readonly log4net.ILog log =
-   //log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog log =
+   log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
        
@@ -24,6 +24,26 @@ namespace SharedPluginServer
             _isOpen = true;
             Filename = filename;
 
+        }
+
+        public void Connect(string filename)
+        {
+            try
+            {
+                _sharedBuf = new SharedArray<byte>(filename);
+                Filename = filename;
+                _isOpen = true;
+                log.Debug("Server connected:" + filename);
+            }
+            catch (Exception ex)
+            {
+                _isOpen = false;
+            }
+        }
+
+        public bool GetIsOpen()
+        {
+            return _isOpen;
         }
 
         public void Resize(int newSize)
@@ -55,7 +75,19 @@ namespace SharedPluginServer
             _sharedBuf.Close();
         }
     
+        public byte[] ReadBytes()
+        {
+            byte[] ret = null;
+            if(_isOpen)
+            {
+                ret = new byte[_sharedBuf.Count];
+                _sharedBuf.CopyTo(ret);
 
+                //_sharedBuf.
+            }
+
+            return ret;
+        }
       
 
     }

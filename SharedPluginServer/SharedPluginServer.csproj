@@ -109,6 +109,7 @@
     <Compile Include="CefWorker\WorkerCefRenderProcessHandler.cs" />
     <Compile Include="CefWorker\WorkerCefLifespanHandler.cs" />
     <Compile Include="CefWorker\WorkerCefMessageRouterHandler.cs" />
+    <Compile Include="Interprocess\SharedCommServer.cs" />
     <Compile Include="Interprocess\SocketServer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

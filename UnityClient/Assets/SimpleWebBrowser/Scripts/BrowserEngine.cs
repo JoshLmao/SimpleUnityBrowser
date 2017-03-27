@@ -1,8 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using MessageLibrary;
@@ -20,9 +18,11 @@ namespace SimpleWebBrowser
 
     public class BrowserEngine
     {
-        private TcpClient _clientSocket;
 
         private SharedArray<byte> _mainTexArray;
+
+        private SharedCommServer _inCommServer;
+        private SharedCommServer _outCommServer;
 
         private Process _pluginProcess;
 
@@ -39,9 +39,6 @@ namespace SimpleWebBrowser
         private byte[] _bufferBytes = null;
         private long _arraySize = 0;
 
-        //TCP buffer
-        const int READ_BUFFER_SIZE = 2048;
-        private byte[] readBuffer = new byte[READ_BUFFER_SIZE];
 
         #region Status events
 
@@ -58,7 +55,11 @@ namespace SimpleWebBrowser
         public int kHeight = 512;
 
         private string _sharedFileName;
-        private int _port;
+
+        //comm files
+        private string _inCommFile;
+        private string _outCommFile;
+
         private string _initialURL;
         private bool _enableWebRTC;
 
@@ -85,7 +86,7 @@ namespace SimpleWebBrowser
         #region Init
 
         //A really hackish way to avoid thread error. Should be better way
-        public bool ConnectTcp(out TcpClient tcp)
+      /*  public bool ConnectTcp(out TcpClient tcp)
         {
             TcpClient ret = null;
             try
@@ -101,7 +102,7 @@ namespace SimpleWebBrowser
             tcp = ret;
             return true;
 
-        }
+        }*/
 
 
         public void InitPlugin(int width, int height, string sharedfilename, int port, string initialURL,bool enableWebRTC)
@@ -143,7 +144,14 @@ namespace SimpleWebBrowser
 
 
             _sharedFileName = sharedfilename;
-            _port = port;
+
+            //randoms
+            Guid inID = Guid.NewGuid();
+            _outCommFile = inID.ToString();
+
+            Guid outID = Guid.NewGuid();
+            _inCommFile = outID.ToString();
+
             _initialURL = initialURL;
             _enableWebRTC = enableWebRTC;
 
@@ -158,6 +166,10 @@ namespace SimpleWebBrowser
             string args = BuildParamsString();
 
             bool connected = false;
+
+            _inCommServer = new SharedCommServer(false);
+            _outCommServer = new SharedCommServer(true);
+
             while (!connected)
             {
                 try
@@ -185,7 +197,13 @@ namespace SimpleWebBrowser
                     throw;
                 }
 
-                connected = ConnectTcp(out _clientSocket);
+                //connected = ConnectTcp(out _clientSocket);
+
+                _inCommServer.Connect(_inCommFile);
+                bool b1 = _inCommServer.GetIsOpen();
+                _outCommServer.Connect(_outCommFile);
+                bool b2 = _outCommServer.GetIsOpen();
+                connected = b1 && b2;
             }
 
 
@@ -197,7 +215,8 @@ namespace SimpleWebBrowser
             string ret = kWidth.ToString() + " " + kHeight.ToString() + " ";
             ret = ret + _initialURL + " ";
             ret = ret + _sharedFileName + " ";
-            ret = ret + _port.ToString();
+            ret = ret + _outCommFile + " ";
+            ret = ret + _inCommFile + " ";
 
             if (_enableWebRTC)
                 ret = ret + " 1";
@@ -233,14 +252,13 @@ namespace SimpleWebBrowser
                 Type = BrowserEventType.Generic
             };
 
-            MemoryStream mstr = new MemoryStream();
+            /*MemoryStream mstr = new MemoryStream();
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
             byte[] b = mstr.GetBuffer();
-            lock (_clientSocket.GetStream())
-            {
-                _clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteBytes(b);*/
+            _outCommServer.WriteMessage(ep);
+            
         }
 
         public void SendShutdownEvent()
@@ -257,15 +275,13 @@ namespace SimpleWebBrowser
                 Type = BrowserEventType.Generic
             };
 
-            MemoryStream mstr = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(mstr, ep);
-            byte[] b = mstr.GetBuffer();
-            lock (_clientSocket.GetStream())
-            {
-                _clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteMessage(ep);
 
+        }
+
+        public void PushMessages()
+        {
+            _outCommServer.PushMessages();
         }
 
         public void SendDialogResponse(bool ok, string dinput)
@@ -283,16 +299,7 @@ namespace SimpleWebBrowser
                 Type = BrowserEventType.Dialog
             };
 
-            MemoryStream mstr = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(mstr, ep);
-            byte[] b = mstr.GetBuffer();
-
-            //
-            lock (_clientSocket.GetStream())
-            {
-                _clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteMessage(ep);
 
         }
 
@@ -311,15 +318,7 @@ namespace SimpleWebBrowser
                 Type = BrowserEventType.Generic
             };
 
-            MemoryStream mstr = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(mstr, ep);
-            byte[] b = mstr.GetBuffer();
-            //
-            lock (_clientSocket.GetStream())
-            {
-                _clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteMessage(ep);
         }
 
         public void SendCharEvent(int character, KeyboardEventType type)
@@ -336,14 +335,7 @@ namespace SimpleWebBrowser
                 Type = BrowserEventType.Keyboard
             };
 
-            MemoryStream mstr = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(mstr, ep);
-            byte[] b = mstr.GetBuffer();
-            lock (_clientSocket.GetStream())
-            {
-                _clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteMessage(ep);
         }
 
         public void SendMouseEvent(MouseMessage msg)
@@ -355,14 +347,7 @@ namespace SimpleWebBrowser
                 Type = BrowserEventType.Mouse
             };
 
-            MemoryStream mstr = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(mstr, ep);
-            byte[] b = mstr.GetBuffer();
-            lock (_clientSocket.GetStream())
-            {
-                _clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteMessage(ep);
 
         }
 
@@ -381,14 +366,7 @@ namespace SimpleWebBrowser
                 Type = BrowserEventType.Generic
             };
 
-            MemoryStream mstr = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(mstr, ep);
-            byte[] b = mstr.GetBuffer();
-            lock (_clientSocket.GetStream())
-            {
-                _clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteMessage(ep);
 
         }
 
@@ -407,15 +385,7 @@ namespace SimpleWebBrowser
                 Type = BrowserEventType.Ping
             };
 
-            MemoryStream mstr = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(mstr, ep);
-            byte[] b = mstr.GetBuffer();
-            //
-            lock (_clientSocket.GetStream())
-            {
-                _clientSocket.GetStream().Write(b, 0, b.Length);
-            }
+            _outCommServer.WriteMessage(ep);
         }
 
 
@@ -472,6 +442,8 @@ namespace SimpleWebBrowser
                     SendExecuteJSEvent(_runOnceJS);
                     _needToRunOnce = false;
                 }
+
+               
             }
             else
             {
@@ -495,8 +467,8 @@ namespace SimpleWebBrowser
                             //Connect
                            // _clientSocket = new TcpClient("127.0.0.1", _port);
                             //start listen
-                            _clientSocket.GetStream()
-                                .BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
+                            //_clientSocket.GetStream()
+                            //    .BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
 
                             //init memory file
                             _mainTexArray = new SharedArray<byte>(_sharedFileName);
@@ -524,62 +496,54 @@ namespace SimpleWebBrowser
         }
 
         //Receiver
-        private void StreamReceiver(IAsyncResult ar)
+        public void CheckMessage()
         {
-            int BytesRead;
 
-            try
+            if (Initialized)
             {
-                // Ensure that no other threads try to use the stream at the same time.
-                lock (_clientSocket.GetStream())
+                try
                 {
-                    // Finish asynchronous read into readBuffer and get number of bytes read.
-                    BytesRead = _clientSocket.GetStream().EndRead(ar);
-                }
-                MemoryStream mstr = new MemoryStream(readBuffer);
-                BinaryFormatter bf = new BinaryFormatter();
-                EventPacket ep = bf.Deserialize(mstr) as EventPacket;
-                if (ep != null)
-                {
-                    //main handlers
-                    if (ep.Type == BrowserEventType.Dialog)
+                    // Ensure that no other threads try to use the stream at the same time.
+                    EventPacket ep = _inCommServer.GetMessage();
+
+
+                    if (ep != null)
                     {
-                        DialogEvent dev = ep.Event as DialogEvent;
-                        if (dev != null)
+                        //main handlers
+                        if (ep.Type == BrowserEventType.Dialog)
                         {
-                            if (OnJavaScriptDialog != null)
-                                OnJavaScriptDialog(dev.Message, dev.DefaultPrompt, dev.Type);
-                        }
-                    }
-                    if (ep.Type == BrowserEventType.Generic)
-                    {
-                        GenericEvent ge = ep.Event as GenericEvent;
-                        if (ge != null)
-                        {
-                            if (ge.Type == GenericEventType.JSQuery)
+                            DialogEvent dev = ep.Event as DialogEvent;
+                            if (dev != null)
                             {
-                                if (OnJavaScriptQuery != null)
-                                    OnJavaScriptQuery(ge.JsQuery);
+                                if (OnJavaScriptDialog != null)
+                                    OnJavaScriptDialog(dev.Message, dev.DefaultPrompt, dev.Type);
                             }
                         }
-
-                        if (ge.Type == GenericEventType.PageLoaded)
+                        if (ep.Type == BrowserEventType.Generic)
                         {
-                            if (OnPageLoaded != null)
-                                OnPageLoaded(ge.NavigateUrl);
+                            GenericEvent ge = ep.Event as GenericEvent;
+                            if (ge != null)
+                            {
+                                if (ge.Type == GenericEventType.JSQuery)
+                                {
+                                    if (OnJavaScriptQuery != null)
+                                        OnJavaScriptQuery(ge.JsQuery);
+                                }
+                            }
+
+                            if (ge.Type == GenericEventType.PageLoaded)
+                            {
+                                if (OnPageLoaded != null)
+                                    OnPageLoaded(ge.NavigateUrl);
+                            }
                         }
                     }
+
                 }
-                lock (_clientSocket.GetStream())
+                catch (Exception e)
                 {
-                    // Start a new asynchronous read into readBuffer.
-                    _clientSocket.GetStream()
-                        .BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
+                    Debug.Log("Error reading from socket,waiting for plugin server to start...");
                 }
-            }
-            catch (Exception e)
-            {
-                Debug.Log("Error reading from socket,waiting for plugin server to start...");
             }
         }
 
@@ -587,7 +551,7 @@ namespace SimpleWebBrowser
         public void Shutdown()
         {
             SendShutdownEvent();
-            _clientSocket.Close();
+           
         }
     }
 }
