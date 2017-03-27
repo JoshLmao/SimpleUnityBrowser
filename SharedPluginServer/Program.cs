@@ -14,21 +14,19 @@ namespace SharedPluginServer
 
     //Main application
 
-        //bug!
-    public class App//:CefApp
+    public class App
     {
         private static readonly log4net.ILog log =
  log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
-        //CefApp
-      //  private readonly WorkerCefRenderProcessHandler _renderProcessHandler;
+      
 
         private bool _enableWebRtc = false;
 
         private SharedMemServer _memServer;
 
-        //private SocketServer _controlServer;
+        //SharedMem comms
         private SharedCommServer _inCommServer;
         private SharedCommServer _outCommServer;
 
@@ -52,7 +50,7 @@ namespace SharedPluginServer
 
             _memServer = memServer;
             _mainWorker = worker;
-            //_controlServer = commServer;
+           //init SharedMem comms
             _inCommServer = inServer;
             _outCommServer = outServer;
 
@@ -65,7 +63,7 @@ namespace SharedPluginServer
             //attach page events
             _mainWorker.OnPageLoaded += _mainWorker_OnPageLoaded;
 
-            //  SocketServer.OnReceivedMessage += HandleMessage;
+           
 
             IsRunning = true;
 
@@ -103,13 +101,7 @@ namespace SharedPluginServer
                 Type = BrowserEventType.Generic
             };
 
-            MemoryStream mstr = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(mstr, ep);
-
-            //DEBUG
-            //_controlServer.Client.SendData(mstr.GetBuffer());
-            _outCommServer.WriteBytes(mstr.GetBuffer());
+            _outCommServer.WriteMessage(ep);
         }
 
         //shut down by timer, in case of client crash/hang
@@ -119,17 +111,17 @@ namespace SharedPluginServer
             {
                 log.Info("Exiting by timer,timeout:"+_exitTimer.Interval);
                 log.Info("==============SHUTTING DOWN==========");
-              //  SocketServer.OnReceivedMessage -= HandleMessage;
+             
                 _mainWorker.Shutdown();
 
                 _memServer.Dispose();
 
-                //_controlServer.Shutdown();
+               
                 _inCommServer.Dispose();
                 _outCommServer.Dispose();
 
                 IsRunning = false;
-              //  Application.Exit();
+             
 
             }
             catch (Exception ex)
@@ -158,7 +150,6 @@ namespace SharedPluginServer
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
 
-            //_controlServer.Client.SendData(mstr.GetBuffer());
             _outCommServer.WriteBytes(mstr.GetBuffer());
         }
 
@@ -182,7 +173,6 @@ namespace SharedPluginServer
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, ep);
 
-            //_controlServer.Client.SendData(mstr.GetBuffer());
             _outCommServer.WriteBytes(mstr.GetBuffer());
         }
 
@@ -219,17 +209,17 @@ namespace SharedPluginServer
                                 try
                                 {
                                     log.Info("==============SHUTTING DOWN==========");
-                                   // SocketServer.OnReceivedMessage -= HandleMessage;
+                                   
                                        _mainWorker.Shutdown();
                                     
                                      _memServer.Dispose();
 
-                                            // _controlServer.Shutdown();
+                                           
                                             _outCommServer.Dispose();
                                             _inCommServer.Dispose();
 
                                             IsRunning = false;
-                                            // Application.Exit();
+                                          
 
                                         }
                                 catch (Exception e)
@@ -283,7 +273,7 @@ namespace SharedPluginServer
                 {
                         KeyboardEvent keyboardEvent=msg.Event as KeyboardEvent;
 
-                        log.Debug("_________KEYBOARD EVENT:" + keyboardEvent.Type + ";" + keyboardEvent.Key);
+                      
 
                     if (keyboardEvent != null)
                     {
@@ -300,8 +290,7 @@ namespace SharedPluginServer
                         MouseMessage mouseMessage=msg.Event as MouseMessage;
                         if (mouseMessage != null)
                         {
-                           /// log.Debug("___MOUSE EVENT:" + mouseMessage.Type + "," + mouseMessage.X + "," + mouseMessage.Y + "," + mouseMessage.Button);
-
+                          
                             switch (mouseMessage.Type)
                             {
                                 case MouseEventType.ButtonDown:
@@ -349,7 +338,8 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// height,
         /// initialURL,
         /// memory file name,
-        /// comm port,
+        /// in memory comm file name,
+        /// out memory comm file name,
         /// WebRTC?1:0
         /// </summary>
         [STAThread]
@@ -383,14 +373,12 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
             int defWidth = 1280;
             int defHeight = 720;
-            //string defUrl = "http://www.google.com";
             string defUrl = "http://test.webrtc.org";
             string defFileName = "MainSharedMem";
 
             string defInFileName = "InSharedMem";
             string defOutFileName = "OutSharedMem";
 
-           // int defPort = 8885;
             bool useWebRTC = false;
             if (args.Length>0&&args[0] != "--type=renderer")
             {
@@ -420,24 +408,13 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             try
             {
 
-            
-            
-
-
-
-           
-                CefMainArgs cefMainArgs;
+             CefMainArgs cefMainArgs;
                 cefMainArgs = new CefMainArgs(args);
-var cefApp = new WorkerCefApp(useWebRTC);
+             var cefApp = new WorkerCefApp(useWebRTC);
 
+             
 
-                
-
-                
-
-               
-
-                int exit_code = CefRuntime.ExecuteProcess(cefMainArgs, cefApp,IntPtr.Zero);
+             int exit_code = CefRuntime.ExecuteProcess(cefMainArgs, cefApp,IntPtr.Zero);
 
             if ( exit_code>=0)
             {
@@ -483,8 +460,7 @@ var cefApp = new WorkerCefApp(useWebRTC);
                 server.Init(defWidth * defHeight * 4, defFileName);
 
 
-            // SocketServer ssrv = new SocketServer();
-            // ssrv.Init(defPort);
+          
             SharedCommServer inSrv = new SharedCommServer(false);
 
             //TODO: the sizes may vary, but 10k should be enough?
@@ -495,13 +471,14 @@ var cefApp = new WorkerCefApp(useWebRTC);
 
             var app = new App(worker, server, inSrv, outSrv, false);
 
-           //Application.Run();
+          
            while(app.IsRunning)
             {
                 Application.DoEvents();
+                //check incoming messages and push outcoming
                 app.CheckMessage();
             }
-            //CefRuntime.RunMessageLoop();
+          
 
             CefRuntime.Shutdown();
 
