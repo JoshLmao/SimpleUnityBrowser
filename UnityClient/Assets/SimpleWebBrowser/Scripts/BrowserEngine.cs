@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Collections;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
@@ -38,6 +39,8 @@ namespace SimpleWebBrowser
         //Image buffer
         private byte[] _bufferBytes = null;
         private long _arraySize = 0;
+
+        private bool _connected = false;
 
 
         #region Status events
@@ -106,7 +109,7 @@ namespace SimpleWebBrowser
         }*/
 
 
-        public void InitPlugin(int width, int height, string sharedfilename,string initialURL,bool enableWebRTC,bool enableGPU)
+        public IEnumerator InitPlugin(int width, int height, string sharedfilename,string initialURL,bool enableWebRTC,bool enableGPU)
         {
 
             //Initialization (for now) requires a predefined path to PluginServer,
@@ -157,8 +160,8 @@ namespace SimpleWebBrowser
             _enableWebRTC = enableWebRTC;
             _enableGPU = enableGPU;
 
-            if (BrowserTexture == null)
-                BrowserTexture = new Texture2D(kWidth, kHeight, TextureFormat.BGRA32, false);
+              if (BrowserTexture == null)
+                BrowserTexture = new Texture2D(kWidth, kHeight, TextureFormat.BGRA32, false, true);
 
 
 
@@ -167,12 +170,12 @@ namespace SimpleWebBrowser
 
             string args = BuildParamsString();
 
-            bool connected = false;
+           _connected = false;
 
             _inCommServer = new SharedCommServer(false);
             _outCommServer = new SharedCommServer(true);
 
-            while (!connected)
+            while (!_connected)
             {
                 try
                 {
@@ -198,14 +201,15 @@ namespace SimpleWebBrowser
                     Debug.Log("FAILED TO START SERVER FROM:" + PluginServerPath + @"\SharedPluginServer.exe");
                     throw;
                 }
-
-                //connected = ConnectTcp(out _clientSocket);
+                yield return new WaitForSeconds(1.0f);
+               //connected = ConnectTcp(out _clientSocket);
 
                 _inCommServer.Connect(_inCommFile);
                 bool b1 = _inCommServer.GetIsOpen();
                 _outCommServer.Connect(_outCommFile);
                 bool b2 = _outCommServer.GetIsOpen();
-                connected = b1 && b2;
+                _connected = b1 && b2;
+               
             }
 
 
@@ -241,144 +245,162 @@ namespace SimpleWebBrowser
 
         public void SendNavigateEvent(string url, bool back, bool forward)
         {
-            GenericEvent ge = new GenericEvent()
+            if (Initialized)
             {
-                Type = GenericEventType.Navigate,
-                GenericType = BrowserEventType.Generic,
-                NavigateUrl = url
-            };
+                GenericEvent ge = new GenericEvent()
+                {
+                    Type = GenericEventType.Navigate,
+                    GenericType = MessageLibrary.BrowserEventType.Generic,
+                    NavigateUrl = url
+                };
 
-            if (back)
-                ge.Type = GenericEventType.GoBack;
-            else if (forward)
-                ge.Type = GenericEventType.GoForward;
+                if (back)
+                    ge.Type = GenericEventType.GoBack;
+                else if (forward)
+                    ge.Type = GenericEventType.GoForward;
 
-            EventPacket ep = new EventPacket()
-            {
-                Event = ge,
-                Type = BrowserEventType.Generic
-            };
+                EventPacket ep = new EventPacket()
+                {
+                    Event = ge,
+                    Type = MessageLibrary.BrowserEventType.Generic
+                };
 
-            /*MemoryStream mstr = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(mstr, ep);
-            byte[] b = mstr.GetBuffer();
-            _outCommServer.WriteBytes(b);*/
-            _outCommServer.WriteMessage(ep);
-            
+                /*MemoryStream mstr = new MemoryStream();
+                BinaryFormatter bf = new BinaryFormatter();
+                bf.Serialize(mstr, ep);
+                byte[] b = mstr.GetBuffer();
+                _outCommServer.WriteBytes(b);*/
+                _outCommServer.WriteMessage(ep);
+            }
         }
 
         public void SendShutdownEvent()
         {
-            GenericEvent ge = new GenericEvent()
+            if (Initialized)
             {
-                Type = GenericEventType.Shutdown,
-                GenericType = BrowserEventType.Generic
-            };
+                GenericEvent ge = new GenericEvent()
+                {
+                    Type = GenericEventType.Shutdown,
+                    GenericType = MessageLibrary.BrowserEventType.Generic
+                };
 
-            EventPacket ep = new EventPacket()
-            {
-                Event = ge,
-                Type = BrowserEventType.Generic
-            };
+                EventPacket ep = new EventPacket()
+                {
+                    Event = ge,
+                    Type = MessageLibrary.BrowserEventType.Generic
+                };
 
-            _outCommServer.WriteMessage(ep);
-
+                _outCommServer.WriteMessage(ep);
+            }
         }
 
         public void PushMessages()
         {
+            if(Initialized)
             _outCommServer.PushMessages();
         }
 
-        public void SendDialogResponse(bool ok, string dinput)
+       public void SendDialogResponse(bool ok, string dinput)
         {
-            DialogEvent de = new DialogEvent()
+            if (Initialized)
             {
-                GenericType = BrowserEventType.Dialog,
-                success = ok,
-                input = dinput
-            };
+                DialogEvent de = new DialogEvent()
+                {
+                    GenericType = MessageLibrary.BrowserEventType.Dialog,
+                    success = ok,
+                    input = dinput
+                };
 
-            EventPacket ep = new EventPacket
-            {
-                Event = de,
-                Type = BrowserEventType.Dialog
-            };
+                EventPacket ep = new EventPacket
+                {
+                    Event = de,
+                    Type = MessageLibrary.BrowserEventType.Dialog
+                };
 
-            _outCommServer.WriteMessage(ep);
-
+                _outCommServer.WriteMessage(ep);
+            }
         }
 
         public void SendQueryResponse(string response)
         {
-            GenericEvent ge = new GenericEvent()
+            if (Initialized)
             {
-                Type = GenericEventType.JSQueryResponse,
-                GenericType = BrowserEventType.Generic,
-                JsQueryResponse = response
-            };
+                GenericEvent ge = new GenericEvent()
+                {
+                    Type = GenericEventType.JSQueryResponse,
+                    GenericType = BrowserEventType.Generic,
+                    JsQueryResponse = response
+                };
 
-            EventPacket ep = new EventPacket()
-            {
-                Event = ge,
-                Type = BrowserEventType.Generic
-            };
+                EventPacket ep = new EventPacket()
+                {
+                    Event = ge,
+                    Type = BrowserEventType.Generic
+                };
 
-            _outCommServer.WriteMessage(ep);
+                _outCommServer.WriteMessage(ep);
+            }
         }
 
         public void SendCharEvent(int character, KeyboardEventType type)
         {
-
-            KeyboardEvent keyboardEvent = new KeyboardEvent()
+            if (Initialized)
             {
-                Type = type,
-                Key = character
-            };
-            EventPacket ep = new EventPacket()
-            {
-                Event = keyboardEvent,
-                Type = BrowserEventType.Keyboard
-            };
+                KeyboardEvent keyboardEvent = new KeyboardEvent()
+                {
+                    Type = type,
+                    Key = character
+                };
+                EventPacket ep = new EventPacket()
+                {
+                    Event = keyboardEvent,
+                    Type = MessageLibrary.BrowserEventType.Keyboard
+                };
 
-            _outCommServer.WriteMessage(ep);
+                _outCommServer.WriteMessage(ep);
+            }
         }
 
         public void SendMouseEvent(MouseMessage msg)
         {
-
-            EventPacket ep = new EventPacket
+            if (Initialized)
             {
-                Event = msg,
-                Type = BrowserEventType.Mouse
-            };
+                EventPacket ep = new EventPacket
+                {
+                    Event = msg,
+                    Type = MessageLibrary.BrowserEventType.Mouse
+                };
 
-            _outCommServer.WriteMessage(ep);
+                _outCommServer.WriteMessage(ep);
+            }
 
         }
 
         public void SendExecuteJSEvent(string js)
         {
-            GenericEvent ge = new GenericEvent()
+            if (Initialized)
             {
-                Type = GenericEventType.ExecuteJS,
-                GenericType = BrowserEventType.Generic,
-                JsCode = js
-            };
+                GenericEvent ge = new GenericEvent()
+                {
+                    Type = GenericEventType.ExecuteJS,
+                    GenericType = BrowserEventType.Generic,
+                    JsCode = js
+                };
 
-            EventPacket ep = new EventPacket()
-            {
-                Event = ge,
-                Type = BrowserEventType.Generic
-            };
+                EventPacket ep = new EventPacket()
+                {
+                    Event = ge,
+                    Type = BrowserEventType.Generic
+                };
 
-            _outCommServer.WriteMessage(ep);
-
+                _outCommServer.WriteMessage(ep);
+            }
         }
 
         public void SendPing()
-        {
+       {
+            if (Initialized)
+            {
             GenericEvent ge = new GenericEvent()
             {
                 Type = GenericEventType.Navigate, //could be any
@@ -393,8 +415,8 @@ namespace SimpleWebBrowser
             };
 
             _outCommServer.WriteMessage(ep);
+       }
         }
-
 
 
         #endregion
@@ -418,30 +440,16 @@ namespace SimpleWebBrowser
 
 
 
-        public void UpdateTexture()
+     public void UpdateTexture()
         {
 
             if (Initialized)
             {
 
 
-                if (_bufferBytes == null)
-                {
-                    long arraySize = _mainTexArray.Length;
-                    Debug.Log("Memory array size:" + arraySize);
-                    _bufferBytes = new byte[arraySize];
-                }
-                _mainTexArray.CopyTo(_bufferBytes, 0);
+                UpdateInitialized();
 
-                lock (sPixelLock)
-                {
 
-                    BrowserTexture.LoadRawTextureData(_bufferBytes);
-                    BrowserTexture.Apply();
-
-                }
-
-                SendPing();
 
                 //execute run-once functions
                 if (_needToRunOnce)
@@ -449,33 +457,20 @@ namespace SimpleWebBrowser
                     SendExecuteJSEvent(_runOnceJS);
                     _needToRunOnce = false;
                 }
-
-               
             }
             else
             {
-                try
-                {
-                    //GetProcesses does not work for x86.
-                    //so we have just to wait while the plugin started.
+                //  yield return new WaitForSeconds(2);
+                if(_connected)
+                { 
+               
+                   
+                    
+                        //Thread.Sleep(200); //give it some time to initialize
 
-
-
-                    //string processName = _pluginProcess.ProcessName;//could be InvalidOperationException
-                    //foreach (System.Diagnostics.Process clsProcess in System.Diagnostics.Process.GetProcesses())
-                    //{
-                    // if (clsProcess.ProcessName.Contains(processName)) //HACK: on x86 we have: <process name> (32 bit) 
-                    {
-                        Thread.Sleep(200); //give it some time to initialize
                         try
                         {
 
-
-                            //Connect
-                           // _clientSocket = new TcpClient("127.0.0.1", _port);
-                            //start listen
-                            //_clientSocket.GetStream()
-                            //    .BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(StreamReceiver), null);
 
                             //init memory file
                             _mainTexArray = new SharedArray<byte>(_sharedFileName);
@@ -488,16 +483,8 @@ namespace SimpleWebBrowser
                             Debug.Log("Exception on init:" + ex.Message + ".Waiting for plugin server");
                         }
 
-
-
-                    }
-                    //}
                 }
-                catch (Exception)
-                {
-
-                    //InvalidOperationException
-                }
+               
 
             }
         }
@@ -558,7 +545,32 @@ namespace SimpleWebBrowser
         public void Shutdown()
         {
             SendShutdownEvent();
-           
+        }
+
+        //////////Added//////////
+        public void UpdateInitialized()
+        {
+            if (Initialized)
+            {
+                SendPing();
+
+                if (_bufferBytes == null)
+                {
+                    long arraySize = _mainTexArray.Length;
+                    Debug.Log("Memory array size:" + arraySize);
+                    _bufferBytes = new byte[arraySize];
+                }
+                _mainTexArray.CopyTo(_bufferBytes, 0);
+
+                lock (sPixelLock)
+                {
+
+                    BrowserTexture.LoadRawTextureData(_bufferBytes);
+                    BrowserTexture.Apply();
+
+                }
+            }
         }
     }
+   
 }

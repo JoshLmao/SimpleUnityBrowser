@@ -22,6 +22,7 @@ SharedMemory/obj/
 UnityClient/BrowserDemoWebRTC.zip
 UnityClient/Assets/SimpleWebBrowser/PluginServer/x64/Extending Unity with Editor Scripting [eBook].pdf
 UnityClient/Assets/SimpleWebBrowser/PluginServer/x64/Extending Unity with Editor Scripting [eBook].pdf
+_ReSharper.Caches/
 syntax: glob
 .DS_Store
 *.sln

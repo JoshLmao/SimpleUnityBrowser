@@ -37,8 +37,6 @@ namespace SimpleWebBrowser
         [Multiline]
         public string JSInitializationCode = "";
 
-        //public List<GameObject> AdditionalBrowserObjects
-
         #endregion
 
 
@@ -49,9 +47,11 @@ namespace SimpleWebBrowser
 
         public bool KeepUIVisible = false;
 
-        public Camera MainCamera;
+        public bool UIEnabled = true;
+       public Camera MainCamera;
 
-        [Header("Dialog settings")]
+        [Header("Dialog settings")] [SerializeField] public bool DialogEnabled = false;
+
         [SerializeField]
         public Canvas DialogCanvas;
         [SerializeField]
@@ -110,8 +110,10 @@ namespace SimpleWebBrowser
         {
             if (mainUIPanel == null)
                 mainUIPanel = gameObject.transform.FindChild("MainUI").gameObject.GetComponent<BrowserUI>();
-            if (DialogCanvas == null)
-                DialogCanvas = gameObject.transform.FindChild("MessageBox").gameObject.GetComponent<Canvas>();
+            if (DialogEnabled)
+            {
+                if (DialogCanvas == null)
+                    DialogCanvas = gameObject.transform.FindChild("MessageBox").gameObject.GetComponent<Canvas>();
             if (DialogText == null)
                 DialogText = DialogCanvas.transform.FindChild("MessageText").gameObject.GetComponent<Text>();
             if (OkButton == null)
@@ -123,9 +125,10 @@ namespace SimpleWebBrowser
             if (DialogPrompt == null)
                 DialogPrompt = DialogCanvas.transform.FindChild("Prompt").gameObject.GetComponent<InputField>();
 
-        }
+    }
+  }
 
-        void Awake()
+        void Start()
         {
             _mainEngine = new BrowserEngine();
 
@@ -138,17 +141,17 @@ namespace SimpleWebBrowser
 
 
 
-            _mainEngine.InitPlugin(Width, Height, MemoryFile, InitialURL,EnableWebRTC,EnableGPU);
+  StartCoroutine(          _mainEngine.InitPlugin(Width, Height, MemoryFile, InitialURL,EnableWebRTC,EnableGPU));
             //run initialization
             if (JSInitializationCode.Trim() != "")
                 _mainEngine.RunJSOnce(JSInitializationCode);
-        }
 
-        // Use this for initialization
-        void Start()
-        {
-            InitPrefabLinks();
-            mainUIPanel.InitPrefabLinks();
+            //
+            if (UIEnabled)
+            {
+                InitPrefabLinks();
+                mainUIPanel.InitPrefabLinks();
+            }
 
             if (MainCamera == null)
             {
@@ -161,25 +164,32 @@ namespace SimpleWebBrowser
             _mainMaterial.SetTexture("_MainTex", _mainEngine.BrowserTexture);
             _mainMaterial.SetTextureScale("_MainTex", new Vector2(-1, 1));
 
-
+            
+            if(UIEnabled)
             mainUIPanel.MainCanvas.worldCamera = MainCamera;
 
 
 
 
 
-            // _mainInput = MainUrlInput.GetComponent<Input>();
-            mainUIPanel.KeepUIVisible = KeepUIVisible;
-            if (!KeepUIVisible)
-                mainUIPanel.Hide();
+              // _mainInput = MainUrlInput.GetComponent<Input>();
+            if (UIEnabled)
+            {
+                mainUIPanel.KeepUIVisible = KeepUIVisible;
+                if (!KeepUIVisible)
+                    mainUIPanel.Hide();
+            }
 
-            //attach dialogs and queries
+            //attach dialogs and querys
             _mainEngine.OnJavaScriptDialog += _mainEngine_OnJavaScriptDialog;
             _mainEngine.OnJavaScriptQuery += _mainEngine_OnJavaScriptQuery;
-            _mainEngine.OnPageLoaded += _mainEngine_OnPageLoaded;
+_mainEngine.OnPageLoaded += _mainEngine_OnPageLoaded;
 
-            DialogCanvas.worldCamera = MainCamera;
-            DialogCanvas.gameObject.SetActive(false);
+            if (DialogEnabled)
+            {
+                DialogCanvas.worldCamera = MainCamera;
+                DialogCanvas.gameObject.SetActive(false);
+            }
 
         }
 
@@ -211,11 +221,12 @@ namespace SimpleWebBrowser
 
         }
 
-        private void ShowDialog()
+         private void ShowDialog()
         {
-
-            switch (_dialogEventType)
+            if (DialogEnabled)
             {
+                switch (_dialogEventType)
+                {
                 case DialogEventType.Alert:
                 {
                     DialogCanvas.gameObject.SetActive(true);
@@ -250,7 +261,8 @@ namespace SimpleWebBrowser
                     break;
                 }
             }
-            _showDialog = false;
+                _showDialog = false;
+            }
         }
 
         #region UI
@@ -281,8 +293,11 @@ namespace SimpleWebBrowser
 
         public void DialogResult(bool result)
         {
-            DialogCanvas.gameObject.SetActive(false);
-            _mainEngine.SendDialogResponse(result, DialogPrompt.text);
+            if (DialogEnabled)
+            {
+                DialogCanvas.gameObject.SetActive(false);
+                _mainEngine.SendDialogResponse(result, DialogPrompt.text);
+            }
 
         }
 
@@ -294,12 +309,14 @@ namespace SimpleWebBrowser
         void OnMouseEnter()
         {
             _focused = true;
+            if(UIEnabled)
             mainUIPanel.Show();
         }
 
         void OnMouseExit()
         {
             _focused = false;
+           if(UIEnabled)
             mainUIPanel.Hide();
         }
 
@@ -493,10 +510,13 @@ namespace SimpleWebBrowser
             if (_setUrl)
             {
                 _setUrl = false;
+                if(UIEnabled)
                 mainUIPanel.UrlField.text = _setUrlString;
 
             }
 
+if (UIEnabled)
+            {
 
 
             if (_focused && !mainUIPanel.UrlField.isFocused) //keys
@@ -507,7 +527,7 @@ namespace SimpleWebBrowser
                     _mainEngine.SendCharEvent((int) c, KeyboardEventType.CharKey);
                 }
                 ProcessKeyEvents();
-
+             }
 
 
 
