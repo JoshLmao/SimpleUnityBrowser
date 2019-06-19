@@ -158,7 +158,13 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>:: Copy CEF x64 browser
-copy "$(SolutionDir)third_party\cef_64\*" $(ProjectDir)$(OutDir)</PostBuildEvent>
+copy "$(SolutionDir)third_party\cef_64\*" $(ProjectDir)$(OutDir)
+:: Copy WidevineCdm folder
+xcopy "$(SolutionDir)third_party\WidevineCdm\*" "$(ProjectDir)$(OutDir)\WidevineCdm" /Y /I /E</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>:: Delete WidevineCdm folder
+rd /s /q "$(ProjectDir)$(OutDir)\WidevineCdm\"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

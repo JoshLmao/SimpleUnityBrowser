@@ -11,7 +11,6 @@ using Xilium.CefGlue;
 
 namespace SharedPluginServer
 {
-
     //Main application
 
     public class App
@@ -365,9 +364,7 @@ namespace SharedPluginServer
 
             }
 
-           
-
-
+            /// Default values
             int defWidth = 1280;
             int defHeight = 720;
             string defUrl = "http://test.webrtc.org";
@@ -377,8 +374,9 @@ namespace SharedPluginServer
             string defOutFileName = "OutSharedMem";
 
             bool useWebRTC = false;
-
             bool EnableGPU = false;
+            /// Default name of the Widevine folder that contains needed files. Path relative to the .exe
+            string defWidevineFolder = "WidevineCdm";
 
             if (args.Length>0&&args[0] != "--type=renderer")
             {
@@ -401,10 +399,12 @@ namespace SharedPluginServer
                 if (args.Length > 7)
                     if (args[7] == "1")
                         EnableGPU = true;
+                if (args.Length > 8)
+                    defWidevineFolder = args[8];
             }
 
-            log.InfoFormat("Starting plugin, settings:width:{0},height:{1},url:{2},memfile:{3},inMem:{4},outMem:{5}, WebRtc:{6},Enable GPU:{7}",
-                defWidth, defHeight, defUrl, defFileName,defInFileName,defOutFileName, useWebRTC,EnableGPU);
+            log.InfoFormat("Starting plugin, settings: width:{0}, height:{1}, url:{2}, memfile:{3}, inMem:{4}, outMem:{5}, WebRtc:{6}, Enable GPU:{7}, Widevine folder: {8}",
+                defWidth, defHeight, defUrl, defFileName,defInFileName,defOutFileName, useWebRTC, EnableGPU, defWidevineFolder);
 
             try
             {
@@ -417,9 +417,9 @@ namespace SharedPluginServer
                     log.ErrorFormat("CefRuntime return "+exit_code);
                     return exit_code;
                 }
-                var cefSettings = new CefSettings
+                CefSettings cefSettings = new CefSettings
                 {
-                    SingleProcess = false,
+                    //SingleProcess = false,
                     MultiThreadedMessageLoop = true,
                     WindowlessRenderingEnabled = true,
                     LogSeverity = CefLogSeverity.Info,
@@ -448,8 +448,6 @@ namespace SharedPluginServer
 
             SharedMemServer server = new SharedMemServer();
             server.Init(defWidth * defHeight * 4, defFileName);
-
-
           
             SharedCommServer inSrv = new SharedCommServer(false);
 
@@ -459,21 +457,30 @@ namespace SharedPluginServer
             SharedCommServer outSrv = new SharedCommServer(true);
             outSrv.InitComm(10000, defOutFileName);
 
-            var app = new App(worker, server, inSrv, outSrv, false);
+            // Register Widevine support
+            string path = Path.Combine(Directory.GetCurrentDirectory(), defWidevineFolder);
+            CefRuntime.CefRegisterWidevineCdm(path, new WidevineCdmCallback());
 
-          
-           while(app.IsRunning)
+            App app = new App(worker, server, inSrv, outSrv, false);
+            while (app.IsRunning)
             {
                 Application.DoEvents();
                 //check incoming messages and push outcoming
                 app.CheckMessage();
             }
-          
 
             CefRuntime.Shutdown();
 
             return 0;
 
+        }
+    }
+
+    public class WidevineCdmCallback : CefRegisterCdmCallback
+    {
+        protected override void OnCdmRegistrationComplete(CefCdmRegistrationError result, string errorMessage)
+        {
+            Console.WriteLine(result);
         }
     }
 }
