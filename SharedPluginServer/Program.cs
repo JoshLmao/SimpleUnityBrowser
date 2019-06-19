@@ -423,7 +423,7 @@ namespace SharedPluginServer
                 }
                 var cefSettings = new CefSettings
                 {
-                    //SingleProcess = false,
+                    SingleProcess = false,
                     MultiThreadedMessageLoop = true,
                     WindowlessRenderingEnabled = true,
                     LogSeverity = CefLogSeverity.Info,

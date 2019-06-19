@@ -96,18 +96,19 @@ namespace TestClient
 
             while (!connected)
             {
+                // Gets the correct directories for current Debug environment. If these are wrong, correct them
+                string solutionDirectory = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(System.IO.Directory.GetCurrentDirectory())));
+                string workingDir = Path.Combine(solutionDirectory, @"SharedPluginServer\bin\Debug");
+                string fileName = Path.Combine(workingDir, "SharedPluginServer.exe");
+
                 Process pluginProcess = new Process()
                 {
                     StartInfo = new ProcessStartInfo()
                     {
-                        WorkingDirectory =
-                           //   @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x86\Debug",
-                            @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x64\Debug",
-                        FileName =
-                           // @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x86\Debug\SharedPluginServer.exe",
-                            @"D:\work\unity\StandaloneConnector_1\SimpleUnityBrowser\SharedPluginServer\bin\x64\Debug\SharedPluginServer.exe",
-                        Arguments = args
-
+                        WorkingDirectory = workingDir,
+                        FileName = fileName,
+                        Arguments = args,
+                        UseShellExecute = false,
                     }
                 };
                 pluginProcess.Start();
