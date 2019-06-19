@@ -16,11 +16,7 @@ namespace SharedPluginServer
 
     public class App
     {
-        private static readonly log4net.ILog log =
- log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-
-      
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool _enableWebRtc = false;
 

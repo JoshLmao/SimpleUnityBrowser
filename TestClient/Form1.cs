@@ -16,10 +16,7 @@ namespace TestClient
 {
     public partial class Form1 : Form
     {
-        private static readonly log4net.ILog log =
-  log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         const int READ_BUFFER_SIZE = 2048;
         private byte[] readBuffer = new byte[READ_BUFFER_SIZE];
@@ -41,53 +38,41 @@ namespace TestClient
 
         private Bitmap _texture;
 
-        public string memfile= "MainSharedMem";
+        public string m_memFile = "MainSharedMem";
 
-        public string inMemFile = "OutSharedMem"; //Inverted
-        public string outMemFile = "InSharedMem";
+        public string m_inMemFile = "OutSharedMem"; //Inverted
+        public string m_outMemFile = "InSharedMem";
 
         private bool _inModalDialog = false;
 
         public Form1()
         {
             InitializeComponent();
-            this.pictureBox1.MouseWheel += PictureBox1_MouseWheel;
+            this.displayBox.MouseWheel += PictureBox1_MouseWheel;
 
            Init();
         }
 
-
-        
-
         public void Init()
         {
-
-
             //string args = "--enable-media-stream";
             string args = "";
 #if USE_ARGS
-           
+            int width = displayBox.Width;
+            int height = displayBox.Height;
+            string startingUrl = "http://test.webrtc.org";
 
-
-            args =args+ pictureBox1.Width.ToString() + " " + pictureBox1.Height.ToString()+" ";
-            args = args + "http://test.webrtc.org"+" ";
-            Guid memid = Guid.NewGuid();
-
-            memfile = memid.ToString();
-            args = args + memfile + " ";
-
+            Guid memoryId = Guid.NewGuid();
+            m_memFile = memoryId.ToString();
             Guid inID = Guid.NewGuid();
-            outMemFile = inID.ToString();
-            args = args + outMemFile + " ";
-
+            m_outMemFile = inID.ToString();
             Guid outID = Guid.NewGuid();
-            inMemFile = outID.ToString();
-            args = args + inMemFile + " ";
+            m_inMemFile = outID.ToString();
 
+            bool isWebRTCEnabled = true;
+            bool isGPUEnabled = true;
 
-            args = args + "1"+" ";//webrtc
-
-            args = args + "1"; //gpu
+            args = string.Join(" ", width, height, startingUrl, m_memFile, m_outMemFile, m_inMemFile, isWebRTCEnabled ? "1" : "0", isGPUEnabled ? "1" : "0");
 #endif
             bool connected = false;
 
@@ -112,8 +97,6 @@ namespace TestClient
                     }
                 };
                 pluginProcess.Start();
-                //Thread.Sleep(10000);
-                // while (!Process.GetProcesses().Any(p => p.Name == myName)) { Thread.Sleep(100); }
 
                 bool found_proc = false;
                 while (!found_proc)
@@ -126,21 +109,18 @@ namespace TestClient
                 }
 
 
-                _inCommServer.Connect(inMemFile);
+                _inCommServer.Connect(m_inMemFile);
                 bool b1 = _inCommServer.GetIsOpen();
-                _outCommServer.Connect(outMemFile);
+                _outCommServer.Connect(m_outMemFile);
                 bool b2 = _outCommServer.GetIsOpen();
 
                 connected = b1 && b2;
                
             }
-            arr = new SharedArray<byte>(memfile);
-
-            //clientSocket.Connect(new IPEndPoint(ip, port));
-
+            arr = new SharedArray<byte>(m_memFile);
             
 #if USE_ARGS
-            _texture = new Bitmap(pictureBox1.Width, pictureBox1.Width);
+            _texture = new Bitmap(displayBox.Width, displayBox.Width);
 #else
             int defWidth = 1280;
             int defHeight = 720;
@@ -149,17 +129,13 @@ namespace TestClient
             Application.Idle += Application_Idle;
         }
 
-
         private void CheckMessage()
         {
-
             //push
             _outCommServer.PushMessages();
 
             try
             {
-
-
                 EventPacket ep = _inCommServer.GetMessage();
                 if (ep != null)
                 {
@@ -213,7 +189,7 @@ namespace TestClient
 
                         if (ge.Type == GenericEventType.PageLoaded)
                         {
-                            MessageBox.Show("Navigated to:" + ge.NavigateUrl);
+                            urlTextBox.Text = ge.NavigateUrl;
                         }
                     }
                 }
@@ -223,8 +199,6 @@ namespace TestClient
             catch (Exception e)
             {
             }
-
-           
         }
 
         public void SendDialogResponse(bool ok)
@@ -249,7 +223,6 @@ namespace TestClient
 
             //
             _outCommServer.WriteBytes(b);
-
         }
 
         public void SendQueryResponse(string response)
@@ -285,27 +258,22 @@ namespace TestClient
             arr.CopyTo(_read, 0);
 
             
-            Rectangle rect = new Rectangle(0, 0, pictureBox1.Width, pictureBox1.Height);
+            Rectangle rect = new Rectangle(0, 0, displayBox.Width, displayBox.Height);
             BitmapData bmpData = _texture.LockBits(rect, ImageLockMode.WriteOnly, _texture.PixelFormat);
             IntPtr ptr = bmpData.Scan0;
             System.Runtime.InteropServices.Marshal.Copy(_read, 0, ptr, _read.Length);
             _texture.UnlockBits(bmpData);
-            pictureBox1.Image = _texture;
+            displayBox.Image = _texture;
 
             //Query message
             //clientSocket.Receive()
             CheckMessage();
-
         }
-
-        
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             SendShutdownEvent();
             Application.Idle -= Application_Idle;
-           
-            
         }
 
         public void SendMouseEvent(MouseMessage msg)
@@ -590,7 +558,7 @@ namespace TestClient
 
         private void pictureBox1_MouseHover(object sender, EventArgs e)
         {
-            pictureBox1.Focus();
+            displayBox.Focus();
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -608,9 +576,7 @@ namespace TestClient
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            // SendExecuteJSEvent("alert('Hello world');");
-            //SendPing();
-            SendNavigateEvent("http://www.yandex.ru", false, false);
+            SendNavigateEvent("http://www.google.com", false, false);
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -623,13 +589,14 @@ namespace TestClient
             SendNavigateEvent("", false, true);
         }
 
-        //protected override void OnMouseWheel()
+        private void Button4_Click(object sender, EventArgs e)
+        {
+            SendNavigateEvent(urlTextBox.Text, false, false);
+        }
+
+        private void Button1_Click(object sender, EventArgs e)
+        {
+            SendNavigateEvent("https://bitmovin.com/demos/drm", false, false);
+        }
     }
-
-
-
-
-
-
-   
 }
