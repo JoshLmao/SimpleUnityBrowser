@@ -36,11 +36,11 @@ namespace SharedPluginServer
             
         }
 
-       protected override bool OnBeforeNavigation(CefBrowser browser, CefFrame frame, CefRequest request,
-            CefNavigationType navigation_type, bool isRedirect)
-        {
-            return false;
-        }
+       //protected override bool OnBeforeNavigation(CefBrowser browser, CefFrame frame, CefRequest request,
+       //     CefNavigationType navigation_type, bool isRedirect)
+       // {
+       //     return false;
+       // }
     }
 
 

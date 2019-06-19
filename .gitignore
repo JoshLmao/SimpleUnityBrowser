@@ -1,0 +1,57 @@
+syntax: glob
+
+ConsoleTest/bin/
+ConsoleTest/obj/
+SharedPluginServer/bin/
+SharedPluginServer/cef/
+SharedPluginServer/obj/
+TestClient/bin/
+TestClient/obj/
+MessageLibrary/bin/
+MessageLibrary/obj/
+SharedMemory/bin/
+SharedMemory/obj/
+_ReSharper.Caches/
+syntax: glob
+.DS_Store
+syntax: regexp
+
+*.sln
+*.userprefs
+*.csproj
+*.pidb
+*.unitypackage
+*.suo
+
+^Build/.*
+^Library/.*
+^Temp/.*
+
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Pp]ackages/
+
+# Unity
+UnityClient/Library/CrashedAssetImports.txt
+UnityClient/Library
+UnityClient/Temp
+UnityClient/Output/
+UnityClient/Assets/SimpleWebBrowser/PluginServer/x64/debug.log
+UnityClient/Assets/SimpleWebBrowser/PluginServer/x64/log-file.txt
+UnityClient/BrowserDemo.zip
+
+# Specifics
+third_party/
+release_build/

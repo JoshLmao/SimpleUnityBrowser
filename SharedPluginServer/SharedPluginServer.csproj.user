@@ -4,4 +4,7 @@
     <StartArguments>
     </StartArguments>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <StartArguments>1750 768 https://test.webrtc.org/ MainSharedMem InSharedMem OutSharedMem 8885 1</StartArguments>
+  </PropertyGroup>
 </Project>

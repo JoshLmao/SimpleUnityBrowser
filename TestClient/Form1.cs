@@ -1,28 +1,16 @@
 ﻿#define USE_ARGS
 
+using MessageLibrary;
+using SharedMemory;
+using SharedPluginServer.Interprocess;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-//using SharedMemory;
-using System.IO.Pipes;
 using System.IO;
-//using System.Net;
-//using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading;
-using SharedMemory;
-using SharedPluginServer.Interprocess;
-using log4net;
-using MessageLibrary;
+using System.Windows.Forms;
 
 namespace TestClient
 {

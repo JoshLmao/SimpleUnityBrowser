@@ -327,7 +327,7 @@ namespace SharedPluginServer
     static class Program
     {
         private static readonly log4net.ILog log =
-log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
 
@@ -386,8 +386,6 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
             if (args.Length>0&&args[0] != "--type=renderer")
             {
-               
-
                 if (args.Length > 1)
                 {
                     defWidth = Int32.Parse(args[0]);
@@ -414,57 +412,46 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
             try
             {
+                CefMainArgs cefMainArgs = new CefMainArgs(args);
+                WorkerCefApp cefApp = new WorkerCefApp(useWebRTC, EnableGPU);
 
-             CefMainArgs cefMainArgs;
-                cefMainArgs = new CefMainArgs(args);
-             var cefApp = new WorkerCefApp(useWebRTC,EnableGPU);
-
-             
-
-             int exit_code = CefRuntime.ExecuteProcess(cefMainArgs, cefApp,IntPtr.Zero);
-
-            if ( exit_code>=0)
-            {
+                int exit_code = CefRuntime.ExecuteProcess(cefMainArgs, cefApp, IntPtr.Zero);
+                if (exit_code >= 0)
+                {
                     log.ErrorFormat("CefRuntime return "+exit_code);
                     return exit_code;
-            }
-            var cefSettings = new CefSettings
-            {
-                SingleProcess = false,
-                MultiThreadedMessageLoop = true,
-                WindowlessRenderingEnabled = true,
-                LogSeverity = CefLogSeverity.Info,
+                }
+                var cefSettings = new CefSettings
+                {
+                    //SingleProcess = false,
+                    MultiThreadedMessageLoop = true,
+                    WindowlessRenderingEnabled = true,
+                    LogSeverity = CefLogSeverity.Info,
+                };
 
-            };
-
-
-
-            try
-            {
-                    
-              CefRuntime.Initialize(cefMainArgs, cefSettings, cefApp, IntPtr.Zero);
-                   
-            }
-            catch (CefRuntimeException ex)
-            {
-                log.ErrorFormat("{0} error", ex.Message);
-
-            }
-                /////////////
+                try
+                {
+                    CefRuntime.Initialize(cefMainArgs, cefSettings, cefApp, IntPtr.Zero);
+                }
+                catch (CefRuntimeException ex)
+                {
+                    log.ErrorFormat("{0} error", ex.Message);
+                }
             }
             catch (Exception ex)
             {
+                // Can't find libcef.dll? Download the right binary files, paste /Release/ folder from Binaries in executing path (/bin/Debug or /bin/Release)
+                // Binaries download: http://opensource.spotify.com/cefbuilds/index.html
+                // Version miss match? Find version in CefGlue/CefGlue/Interop/version.g.cs under property "CEF_VERSION"
                 log.Info("EXCEPTION ON CEF INITIALIZATION:"+ex.Message+"\n"+ex.StackTrace);
                 throw;
             }
 
+            CefWorker worker = new CefWorker();
+            worker.Init(defWidth, defHeight, defUrl);
 
-
-                CefWorker worker = new CefWorker();
-                worker.Init(defWidth, defHeight, defUrl);
-
-                SharedMemServer server = new SharedMemServer();
-                server.Init(defWidth * defHeight * 4, defFileName);
+            SharedMemServer server = new SharedMemServer();
+            server.Init(defWidth * defHeight * 4, defFileName);
 
 
           
