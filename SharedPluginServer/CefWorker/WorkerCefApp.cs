@@ -23,10 +23,6 @@ namespace SharedPluginServer
             return _renderProcessHandler;
         }
 
-
-
-
-
         //GPU and others
         protected override void OnBeforeCommandLineProcessing(string processType, CefCommandLine commandLine)
         {
@@ -40,12 +36,18 @@ namespace SharedPluginServer
                 }
                 commandLine.AppendSwitch("enable-begin-frame-scheduling");
                 commandLine.AppendSwitch("disable-smooth-scrolling");
-               if (_enableWebRtc)
+                if (_enableWebRtc)
                 {
                     commandLine.AppendSwitch("enable-media-stream", "true");
-                   
                 }
 
+                commandLine.AppendSwitch("enable-widevine-cdm", "true");
+                commandLine.AppendSwitch("widevine-cdm-version", "1.4.8.866");
+                commandLine.AppendSwitch("allow-running-insecure-content", "true");
+                commandLine.AppendSwitch("enable-npapi", "true");
+                commandLine.AppendSwitch("persist_session_cookies", "true");
+                commandLine.AppendSwitch("enable-automatic-password-saving", "enable-automatic-password-saving");
+                commandLine.AppendSwitch("enable-password-save-in-page-navigation", "enable-password-save-in-page-navigation");
             }
             //commandLine.AppendArgument("--enable-media-stream");
         }

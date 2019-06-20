@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using MessageLibrary;
 using SharedPluginServer.Interprocess;
 using Xilium.CefGlue;
+using System.Linq;
 
 namespace SharedPluginServer
 {
@@ -62,7 +63,7 @@ namespace SharedPluginServer
 
             IsRunning = true;
 
-           _exitTimer=new Timer();
+            _exitTimer=new Timer();
             _exitTimer.Interval = 10000;
             _exitTimer.Tick += _exitTimer_Tick;
             _exitTimer.Start();
@@ -410,7 +411,7 @@ namespace SharedPluginServer
             {
                 CefMainArgs cefMainArgs = new CefMainArgs(args);
                 WorkerCefApp cefApp = new WorkerCefApp(useWebRTC, EnableGPU);
-
+                
                 int exit_code = CefRuntime.ExecuteProcess(cefMainArgs, cefApp, IntPtr.Zero);
                 if (exit_code >= 0)
                 {
@@ -419,10 +420,12 @@ namespace SharedPluginServer
                 }
                 CefSettings cefSettings = new CefSettings
                 {
-                    //SingleProcess = false,
+                    SingleProcess = false,
                     MultiThreadedMessageLoop = true,
                     WindowlessRenderingEnabled = true,
                     LogSeverity = CefLogSeverity.Info,
+                    ContextSafetyImplementation = CefContextSafetyImplementation.SafeDefault,
+                    PersistSessionCookies = true,
                 };
 
                 try
@@ -480,7 +483,7 @@ namespace SharedPluginServer
     {
         protected override void OnCdmRegistrationComplete(CefCdmRegistrationError result, string errorMessage)
         {
-            Console.WriteLine(result);
+            Console.WriteLine("Widevine Callback: " + result);
         }
     }
 }

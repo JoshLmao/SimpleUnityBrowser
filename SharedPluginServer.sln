@@ -21,6 +21,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cef_64", "cef_64", "{7FDDA843-6E11-4ED2-A289-C2B102E2D83D}"
 	ProjectSection(SolutionItems) = preProject
 		third_party\cef_64\libcef.dll = third_party\cef_64\libcef.dll
+		third_party\cef_64\version.txt = third_party\cef_64\version.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CefGlue", "CefGlue", "{65580690-D49D-4CB4-872D-CE4B4813E9F8}"
@@ -44,6 +45,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CefGlue.Tests", "CefGlue\CefGlue.Tests\CefGlue.Tests.csproj", "{E09F8212-7F9F-4C4B-8502-E0DC352FC9AC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CefGlue.WPF.Tests", "CefGlue\CefGlue.WPF.Tests\CefGlue.WPF.Tests.csproj", "{99D2955C-E499-4B60-8757-4F0E1B61A680}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WidevineCdm", "WidevineCdm", "{23F3144F-9099-4D03-A726-3A05ABB39A40}"
+	ProjectSection(SolutionItems) = preProject
+		third_party\WidevineCdm\manifest.json = third_party\WidevineCdm\manifest.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -239,6 +245,7 @@ Global
 		{447C6790-E36E-4A54-BFAC-06C92FFF4AA3} = {65580690-D49D-4CB4-872D-CE4B4813E9F8}
 		{E09F8212-7F9F-4C4B-8502-E0DC352FC9AC} = {65580690-D49D-4CB4-872D-CE4B4813E9F8}
 		{99D2955C-E499-4B60-8757-4F0E1B61A680} = {65580690-D49D-4CB4-872D-CE4B4813E9F8}
+		{23F3144F-9099-4D03-A726-3A05ABB39A40} = {AB0854ED-A8C2-49FF-B58D-300ED99EF13E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B521931E-655E-4463-AB18-11BFE76FE4B0}
